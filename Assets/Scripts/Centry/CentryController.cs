@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
-public class CentryController : MonoBehaviour, IDamagable
+public class CentryController : InventoryHolder, IDamagable, IInteractable
 {
     [Header("Referencias")]
     [SerializeField] private GameObject _proyectile;
@@ -9,6 +10,9 @@ public class CentryController : MonoBehaviour, IDamagable
     [SerializeField] private Transform _bulletsPivot;
     [SerializeField] private Transform _raycastPivot;
     private BoxCollider _centryCollider;
+
+    [Header("Sistema de Municion")]
+    [SerializeField] private InventoryItemData _ammoTypeData;
 
     [Header("Disparo")]
     [SerializeField] private float _fireRate = 0.5f;
@@ -26,11 +30,28 @@ public class CentryController : MonoBehaviour, IDamagable
 
     private List<GameObject> _enemiesList = new List<GameObject>();
 
+    public UnityAction<IInteractable> OnInteractionComplete { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
     private void Start()
     {
         _centryCollider = GetComponent<BoxCollider>();
 
         _currentHealth = _maxHealth;
+
+        Collider[] collidersAlreadyInside = Physics.OverlapBox(
+            _centryCollider.bounds.center,
+            _centryCollider.bounds.extents,
+            _centryCollider.transform.rotation
+        );
+
+        foreach (Collider col in collidersAlreadyInside)
+        {
+            EnemyController enemy = col.GetComponent<EnemyController>();
+            if (enemy != null && !_enemiesList.Contains(enemy.gameObject))
+            {
+                _enemiesList.Add(enemy.gameObject);
+            }
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -140,21 +161,57 @@ public class CentryController : MonoBehaviour, IDamagable
         _timeSinceLastShot += Time.deltaTime;
         if (_timeSinceLastShot >= _fireRate)
         {
-            GameObject newBullet = Instantiate(_proyectile, _bulletsPivot.position, _bulletsPivot.rotation);
-
-            Collider bulletCollider = newBullet.GetComponent<Collider>();
-            if (bulletCollider != null && _centryCollider != null)
+            if (HasAmmo())
             {
-                Physics.IgnoreCollision(bulletCollider, _centryCollider);
+                ConsumeAmmo();
+                Shoot();
             }
-
-            Rigidbody bulletRb = newBullet.GetComponent<Rigidbody>();
-            if (bulletRb != null)
-                bulletRb.linearVelocity = _bulletsPivot.forward * _bulletSpeed;
-
-            Destroy(newBullet, 3f);
-            _timeSinceLastShot = 0f;
+            else
+            {
+                _timeSinceLastShot = 0f; 
+            }
         }
+    }
+
+    private bool HasAmmo()
+    {
+        if (_ammoTypeData == null) return false;
+
+        return PrimaryInventorySystem.ContainsItem(_ammoTypeData, out _);
+    }
+
+    private void ConsumeAmmo()
+    {
+        if (_ammoTypeData == null) return;
+
+        foreach (var slot in PrimaryInventorySystem.InventorySlots)
+        {
+            if (slot.ItemData == _ammoTypeData && slot.StackSize > 0)
+            {
+                slot.RemoveFromStack(1);
+                if (slot.StackSize <= 0) slot.ClearSlot();
+                PrimaryInventorySystem.OnInventorySlotChanged?.Invoke(slot);
+                break; 
+            }
+        }
+    }
+
+    private void Shoot()
+    {
+        GameObject newBullet = Instantiate(_proyectile, _bulletsPivot.position, _bulletsPivot.rotation);
+
+        Collider bulletCollider = newBullet.GetComponent<Collider>();
+        if (bulletCollider != null && _centryCollider != null)
+        {
+            Physics.IgnoreCollision(bulletCollider, _centryCollider);
+        }
+
+        Rigidbody bulletRb = newBullet.GetComponent<Rigidbody>();
+        if (bulletRb != null)
+            bulletRb.linearVelocity = _bulletsPivot.forward * _bulletSpeed;
+
+        Destroy(newBullet, 3f);
+        _timeSinceLastShot = 0f;
     }
 
     public void DamageRecived(int damage)
@@ -164,4 +221,11 @@ public class CentryController : MonoBehaviour, IDamagable
         if (_currentHealth <= 0)
             Destroy(gameObject);
     }
+
+    public void Interact(Interactor interactor, out bool interactSuccessful)
+    {
+        OnDynamicInventoryDisplayRequested?.Invoke(PrimaryInventorySystem);
+        interactSuccessful = true;
+    }
+    public void EndInteraction() { }
 }

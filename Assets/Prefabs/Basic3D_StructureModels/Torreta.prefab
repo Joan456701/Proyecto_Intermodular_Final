@@ -264,13 +264,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f98f49f895044d949b079c5cfc2ac665, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CentryController
+  _inventorySize: 3
+  _primaryInventorySystem:
+    _inventorySlots: []
   _proyectile: {fileID: 7889488404639355196, guid: 523ab0c80433a4f45990d1855f911efe, type: 3}
   _centryRotation: {fileID: 1728304000034546034}
   _bulletsPivot: {fileID: 5930139486965693469}
   _raycastPivot: {fileID: 627457797517852350}
+  _ammoTypeData: {fileID: 11400000, guid: 8cf11fba2403742448ae5c1e82159010, type: 2}
   _fireRate: 0.5
   _bulletSpeed: 100
   _targetSearchRate: 0.25
+  _maxHealth: 10
 --- !u!54 &7513067301333676587
 Rigidbody:
   m_ObjectHideFlags: 0

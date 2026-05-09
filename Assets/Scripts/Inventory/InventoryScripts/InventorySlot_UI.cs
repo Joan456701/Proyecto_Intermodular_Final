@@ -1,0 +1,77 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
+public class InventorySlot_UI : MonoBehaviour
+{
+    [SerializeField] private Image _itemSprite;
+    [SerializeField] private TextMeshProUGUI _itemCount;
+    [SerializeField] private GameObject _slotHighlight;
+
+    [SerializeField] private InventorySlot _assignedInventorySlot;
+
+    private Button _button;
+
+    public InventorySlot AssignedInventorySlot => _assignedInventorySlot;
+    public InventoryDisplay parentDisplay { get; private set; }
+
+    private void Awake()
+    {
+        ClearSlot();
+
+        _itemSprite.preserveAspect = true;
+
+        _button = GetComponent<Button>();
+        _button?.onClick.AddListener(OnUISlotClick);
+
+        parentDisplay = transform.parent.GetComponent<InventoryDisplay>();
+    }
+
+    public void Init(InventorySlot slot)
+    {
+        _assignedInventorySlot = slot;
+        UpdateUISlot(slot);
+    }
+
+    public void UpdateUISlot(InventorySlot slot)
+    {
+        if (slot.ItemData != null)
+        {
+            _itemSprite.sprite = slot.ItemData.icon;
+            _itemSprite.color = Color.white;
+
+            if (slot.StackSize > 1) _itemCount.text = slot.StackSize.ToString();
+            else _itemCount.text = "";
+        }
+        else
+        {
+            ClearSlot();
+        }
+    }
+
+    public void UpdateUISlot()
+    {
+        if (_assignedInventorySlot != null) UpdateUISlot(_assignedInventorySlot);
+    }
+    public void ClearSlot()
+    {
+        _assignedInventorySlot?.ClearSlot();
+        _itemSprite.sprite = null;
+        _itemSprite.color = Color.clear;
+        _itemCount.text = "";
+    }
+
+    public void OnUISlotClick()
+    {
+        parentDisplay?.SlotClicked(this);
+    }
+
+    public void ToggleHighlight()
+    {
+        if (_slotHighlight != null)
+        {
+            _slotHighlight.SetActive(!_slotHighlight.activeInHierarchy);
+        }
+    }
+}

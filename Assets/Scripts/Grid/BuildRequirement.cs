@@ -1,6 +1,6 @@
 [System.Serializable]
 public struct BuildRequirement
 {
-    public string itemId;
+    public InventoryItemData itemData;
     public int amount;
 }

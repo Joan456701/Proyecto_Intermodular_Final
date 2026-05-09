@@ -20,12 +20,12 @@ public class FirstPersonController : MonoBehaviour, IDamagable
     [SerializeField] private float _upDownLookRange = 80f;
 
     [Header("References")]
-    [SerializeField] private SceneInventoryController _inventoryController;
     [SerializeField] private CharacterController _characterController;
     [SerializeField] private ToolCooldawnManager _cooldawnManager;
     [SerializeField] private PlayerInputHandler _pInputHandler;
     [SerializeField] private RadialMenuManager _rMenuManager;
     [SerializeField] private Camera _mainCamera;
+    private Interactor _interactor;
 
     [Header("Death Settings")]
     [SerializeField] private float _playerHealth = 100f;
@@ -35,15 +35,17 @@ public class FirstPersonController : MonoBehaviour, IDamagable
     [SerializeField] private float _raycastDistance;
     private RaycastHit hitInfo;
 
+    [Header("Equip System & Oxygen")]
+    [SerializeField] private Transform _handHolder; 
+    [SerializeField] private InventoryItemData _oxygenTankData; 
+    private GameObject _equippedItemModel;
+
     private Vector3 _currentMovement;
     private float _verticalRotation;
     private float _currentSpeed => _walkSpeed * (_pInputHandler.sprintTriggered ? _sprintMultiplier : 1f);
     void Start()
     {
-        if (_inventoryController == null)
-        {
-            _inventoryController = FindFirstObjectByType<SceneInventoryController>();
-        }
+        _interactor = GetComponent<Interactor>();
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -51,15 +53,12 @@ public class FirstPersonController : MonoBehaviour, IDamagable
 
     void Update()
     {
-        //DrawRaycast();
         HandleMovement();
 
         if (!_rMenuManager.isMenuActive)
         {
             HandleRotation();
         }
-
-        UpdatePickupPrompt();
 
         if (_pInputHandler.ConsumeInteractTrigger())
         {
@@ -68,30 +67,25 @@ public class FirstPersonController : MonoBehaviour, IDamagable
 
             if (Physics.Raycast(origin, direction, out hitInfo, _raycastDistance))
             {
-                IPickupable pickupItem = hitInfo.collider.GetComponent<IPickupable>();
+                IInteractable interactable = hitInfo.collider.GetComponent<IInteractable>();
 
-                if (pickupItem != null)
+                if (interactable != null && _interactor != null)
                 {
-                    pickupItem.TryPickup(_inventoryController);
-                    return;
-                }
-
-                IWorldInteractable worldInteractable = hitInfo.collider.GetComponent<IWorldInteractable>();
-                if (worldInteractable != null)
-                {
-                    worldInteractable.TryInteract(_inventoryController);
+                    interactable.Interact(_interactor, out bool success);
                 }
             }
         }
     }
     private void OnEnable()
     {
+        HotbarDisplay.OnHotbarSlotChanged += EquipItem;
         if (_cooldawnManager != null)
             _cooldawnManager.OnActionFired += PlayerAttack;
     }
 
     private void OnDisable()
     {
+        HotbarDisplay.OnHotbarSlotChanged -= EquipItem;
         if (_cooldawnManager != null)
             _cooldawnManager.OnActionFired -= PlayerAttack;
     }
@@ -118,37 +112,6 @@ public class FirstPersonController : MonoBehaviour, IDamagable
         }
     }
 
-    private void UpdatePickupPrompt()
-    {
-        if (_inventoryController == null)
-        {
-            return;
-        }
-
-        Vector3 origin = _mainCamera.transform.position;
-        Vector3 direction = _mainCamera.transform.forward;
-
-        if (Physics.Raycast(origin, direction, out RaycastHit pickupHitInfo, _raycastDistance))
-        {
-            IPickupable pickupItem = pickupHitInfo.collider.GetComponent<IPickupable>();
-
-            if (pickupItem != null)
-            {
-                _inventoryController.SetPickupPrompt(true, pickupItem.GetPickupPrompt());
-                return;
-            }
-
-            IWorldInteractable worldInteractable = pickupHitInfo.collider.GetComponent<IWorldInteractable>();
-            if (worldInteractable != null)
-            {
-                _inventoryController.SetPickupPrompt(true, worldInteractable.GetInteractionPrompt());
-                return;
-            }
-        }
-
-        _inventoryController.SetPickupPrompt(false, string.Empty);
-    }
-
     private Vector3 CalculateWorldDircetion()
     { 
         Vector3 inputDirection = new Vector3(_pInputHandler.movementInput.x, 0, _pInputHandler.movementInput.y);
@@ -156,7 +119,6 @@ public class FirstPersonController : MonoBehaviour, IDamagable
         return worldDirection.normalized;
     }
 
-    //Funcion para el salto
     private void HandleJumping()
     {
         if (_characterController.isGrounded)
@@ -239,5 +201,24 @@ public class FirstPersonController : MonoBehaviour, IDamagable
     public float GetMaxHealth()
     {
         return _maxPlayerHealth;
+    }
+
+    private void EquipItem(InventoryItemData item)
+    {
+        if (_equippedItemModel != null) Destroy(_equippedItemModel);
+
+        if (item != null && item.itemPrefab != null && _handHolder != null)
+        {
+            _equippedItemModel = Instantiate(item.itemPrefab, _handHolder);
+
+            _equippedItemModel.transform.localScale = item.itemPrefab.transform.localScale;
+            _equippedItemModel.transform.localRotation = Quaternion.identity;
+            _equippedItemModel.transform.localScale = Vector3.one;
+
+            _equippedItemModel.layer = _handHolder.gameObject.layer;
+
+            if (_equippedItemModel.TryGetComponent(out Rigidbody rb)) rb.isKinematic = true;
+            if (_equippedItemModel.TryGetComponent(out Collider col)) col.enabled = false;
+        }
     }
 }

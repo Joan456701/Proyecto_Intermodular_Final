@@ -167,33 +167,71 @@ public class DayNightSpawnManager : MonoBehaviour
 
         float progress;
         float currentAngle;
+        float transitionThreshold = 0.8f; 
+
+        Color sunColor, ambientColor, fogColor, skyTop, skyBottom, horizon;
 
         if (_currentState == DayCycleState.Day)
         {
             progress = 1f - (_timer / _dayDuration);
             currentAngle = Mathf.Lerp(0f, 180f, progress);
 
-            _sunLight.color = _currentWeather.dayDirectionalColor.Evaluate(progress);
-            RenderSettings.ambientLight = _currentWeather.dayAmbientColor.Evaluate(progress);
-            RenderSettings.fogColor = _currentWeather.dayFogColor.Evaluate(progress);
+            sunColor = _currentWeather.dayDirectionalColor.Evaluate(progress);
+            ambientColor = _currentWeather.dayAmbientColor.Evaluate(progress);
+            fogColor = _currentWeather.dayFogColor.Evaluate(progress);
+            skyTop = _currentWeather.daySkyTop.Evaluate(progress);
+            skyBottom = _currentWeather.daySkyBottom.Evaluate(progress);
+            horizon = _currentWeather.dayHorizon.Evaluate(progress);
 
-            RenderSettings.skybox.SetColor("_SkyGradientTop", _currentWeather.daySkyTop.Evaluate(progress));
-            RenderSettings.skybox.SetColor("_SkyGradientBottom", _currentWeather.daySkyBottom.Evaluate(progress));
-            RenderSettings.skybox.SetColor("_HorizonLineColor", _currentWeather.dayHorizon.Evaluate(progress));
+            if (progress >= transitionThreshold)
+            {
+                float blend = (progress - transitionThreshold) / (1f - transitionThreshold); 
+
+                int nextNightCount = _nightsCount + 1;
+                WeatherProfileSO nextWeather = ((nextNightCount + 1) % _nightsToIncreaseSpeed == 0) ? _bloodMoonWeather : _normalWeather;
+
+                sunColor = Color.Lerp(sunColor, nextWeather.nightDirectionalColor.Evaluate(0f), blend);
+                ambientColor = Color.Lerp(ambientColor, nextWeather.nightAmbientColor.Evaluate(0f), blend);
+                fogColor = Color.Lerp(fogColor, nextWeather.nightFogColor.Evaluate(0f), blend);
+                skyTop = Color.Lerp(skyTop, nextWeather.nightSkyTop.Evaluate(0f), blend);
+                skyBottom = Color.Lerp(skyBottom, nextWeather.nightSkyBottom.Evaluate(0f), blend);
+                horizon = Color.Lerp(horizon, nextWeather.nightHorizon.Evaluate(0f), blend);
+            }
         }
-        else
+        else 
         {
             progress = 1f - (_timer / _nightDuration);
             currentAngle = Mathf.Lerp(180f, 360f, progress);
 
-            _sunLight.color = _currentWeather.nightDirectionalColor.Evaluate(progress);
-            RenderSettings.ambientLight = _currentWeather.nightAmbientColor.Evaluate(progress);
-            RenderSettings.fogColor = _currentWeather.nightFogColor.Evaluate(progress);
+            sunColor = _currentWeather.nightDirectionalColor.Evaluate(progress);
+            ambientColor = _currentWeather.nightAmbientColor.Evaluate(progress);
+            fogColor = _currentWeather.nightFogColor.Evaluate(progress);
+            skyTop = _currentWeather.nightSkyTop.Evaluate(progress);
+            skyBottom = _currentWeather.nightSkyBottom.Evaluate(progress);
+            horizon = _currentWeather.nightHorizon.Evaluate(progress);
 
-            RenderSettings.skybox.SetColor("_SkyGradientTop", _currentWeather.nightSkyTop.Evaluate(progress));
-            RenderSettings.skybox.SetColor("_SkyGradientBottom", _currentWeather.nightSkyBottom.Evaluate(progress));
-            RenderSettings.skybox.SetColor("_HorizonLineColor", _currentWeather.nightHorizon.Evaluate(progress));
+            if (progress >= transitionThreshold)
+            {
+                float blend = (progress - transitionThreshold) / (1f - transitionThreshold);
+
+                WeatherProfileSO nextWeather = _normalWeather;
+
+                sunColor = Color.Lerp(sunColor, nextWeather.dayDirectionalColor.Evaluate(0f), blend);
+                ambientColor = Color.Lerp(ambientColor, nextWeather.dayAmbientColor.Evaluate(0f), blend);
+                fogColor = Color.Lerp(fogColor, nextWeather.dayFogColor.Evaluate(0f), blend);
+                skyTop = Color.Lerp(skyTop, nextWeather.daySkyTop.Evaluate(0f), blend);
+                skyBottom = Color.Lerp(skyBottom, nextWeather.daySkyBottom.Evaluate(0f), blend);
+                horizon = Color.Lerp(horizon, nextWeather.dayHorizon.Evaluate(0f), blend);
+            }
         }
+
+        _sunLight.color = sunColor;
+        RenderSettings.ambientLight = ambientColor;
+        RenderSettings.fogColor = fogColor;
+
+        RenderSettings.skybox.SetColor("_SkyGradientTop", skyTop);
+        RenderSettings.skybox.SetColor("_SkyGradientBottom", skyBottom);
+        RenderSettings.skybox.SetColor("_HorizonLineColor", horizon);
 
         _sunTransform.rotation = Quaternion.Euler(currentAngle, -30f, 0f);
     }

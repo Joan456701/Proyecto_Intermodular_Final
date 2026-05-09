@@ -1,15 +1,22 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public struct ExtractableResources
 {
-    public string itemId;
+    public InventoryItemData itemData; 
     public int amount;
-    public string displayName;
 }
 
-public class ExtractorController : MonoBehaviour, IWorldInteractable
+public class ExtractorController : InventoryHolder, IInteractable
 {
+    public UnityAction<IInteractable> OnInteractionComplete { get; set; }
+
+    [Header("Items que puede extraer (Arrastrar ScriptableObjects)")]
+    [SerializeField] private InventoryItemData _stoneData;
+    [SerializeField] private InventoryItemData _coalData;
+    [SerializeField] private InventoryItemData _ironData;
+
     [Header("Variables del funcionamiento")]
     [SerializeField] private float _extractorSpeed;
 
@@ -41,39 +48,21 @@ public class ExtractorController : MonoBehaviour, IWorldInteractable
 
     private void ExtractTheMaterial()
     {
-        string extractedItemID = RerorllMaterials();
+        InventoryItemData extractedItem = RerollMaterials();
         int materialAmount = RerollAmount();
-        _extractedItems.Add(new ExtractableResources
+
+        if (extractedItem != null)
         {
-            itemId = extractedItemID,
-            amount = materialAmount,
-            displayName = extractedItemID
-        });
+            PrimaryInventorySystem.AddToInventory(extractedItem, materialAmount);
+        }
     }
 
-    private string RerorllMaterials()
+    private InventoryItemData RerollMaterials()
     {
         int roll = Random.Range(0, 100);
-        if (roll < _stoneChance) return "stone";
-        if (roll < _stoneChance + _coalChance) return "carbon";
-        else return "metal";
-    }
-
-    public bool TryInteract(SceneInventoryController inventory)
-    {
-        if (_extractedItems.Count == 0)
-        {
-            return false;
-        }
-
-        foreach (var item in _extractedItems)
-        {
-            inventory.TryAddItem(item.itemId, item.amount);
-            Debug.Log("Recogido: " + item.amount + " " + item.displayName);
-        }
-
-        _extractedItems.Clear();
-        return true;
+        if (roll < _stoneChance) return _stoneData;
+        if (roll < _stoneChance + _coalChance) return _coalData;
+        else return _ironData;
     }
 
     private int RerollAmount()
@@ -84,10 +73,11 @@ public class ExtractorController : MonoBehaviour, IWorldInteractable
         else return 5;
     }
 
-    public string GetInteractionPrompt()
+    public void Interact(Interactor interactor, out bool interactSuccessful)
     {
-        return _extractedItems.Count > 0
-            ? $"Pulsar E para recoger ({_extractedItems.Count} recursos)"
-            : "Sin recursos aún";
+        OnDynamicInventoryDisplayRequested?.Invoke(PrimaryInventorySystem);
+        interactSuccessful = true;
     }
+
+    public void EndInteraction() { }
 }

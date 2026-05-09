@@ -3,7 +3,7 @@ using UnityEngine;
 [System.Serializable]
 public struct LootObject
 {
-    public string _itemName;
+    public InventoryItemData itemData;
     public int minAmount;
     public int maxAmount;
 
@@ -16,19 +16,30 @@ public class PrimitiveMaterials : MonoBehaviour, IDamagable
     [SerializeField] private int _maxHealth;
 
     private int _currentHealth;
-    private int _dropAmount;
 
     [Header("List of Materials")]
-
     [SerializeField] private LootObject[] lootObject;
 
     void Start()
     {
         _currentHealth = _maxHealth;
     }
-    public void DamageRecived(int damge)
+    public void DamageRecived(int damage)
     {
-        _currentHealth -= damge;
+        _currentHealth -= damage;
+
+        if (_currentHealth <= 0)
+        {
+            GiveLoot();
+            Destroy(gameObject);
+        }
+    }
+
+    private void GiveLoot()
+    {
+        PlayerInventoryHolder playerInventory = FindFirstObjectByType<PlayerInventoryHolder>();
+
+        if (playerInventory == null) return;
 
         foreach (LootObject item in lootObject)
         {
@@ -36,17 +47,18 @@ public class PrimitiveMaterials : MonoBehaviour, IDamagable
 
             if (die <= item.probability)
             {
-                _dropAmount = Random.Range(item.minAmount, item.maxAmount + 1);
+                int dropAmount = Random.Range(item.minAmount, item.maxAmount + 1);
 
-                //Añadir al inventario cuando este hecho
+                if (item.itemData != null && dropAmount > 0)
+                {
+                    bool addToPrimary = playerInventory.PrimaryInventorySystem.AddToInventory(item.itemData, dropAmount);
+
+                    if (!addToPrimary)
+                    {
+                        playerInventory.SecondaryInventorySystem.AddToInventory(item.itemData, dropAmount);
+                    }
+                }
             }
-
-            Debug.Log(item._itemName + " ha soltado " + _dropAmount);
-        }
-
-        if (_currentHealth <= 0)
-        {
-            Destroy(gameObject);
         }
     }
 }

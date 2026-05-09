@@ -16,9 +16,10 @@ public class RadialMenuManager : MonoBehaviour
     public Color normalColor = Color.white;
     public Color highlightColor = Color.yellow;
 
-    public bool isMenuActive {get; private set;}
+    public bool isMenuActive { get; private set; }
 
     private List<RadialMenuPiece> _spawnedPieces = new List<RadialMenuPiece>();
+    private bool _menuToggleConsumed = false;
     private RadialMenuSO _currentMenu;
     private int _selectedIndex;
 
@@ -34,6 +35,7 @@ public class RadialMenuManager : MonoBehaviour
         _centralCostText.gameObject.SetActive(false);
         _centralMaterialIcon.gameObject.SetActive(false);
     }
+
     private void Update()
     {
         if (isMenuActive)
@@ -73,13 +75,13 @@ public class RadialMenuManager : MonoBehaviour
 
         menuContainer.gameObject.SetActive(true);
         _currentMenu = mainMenu;
-        
-        SpawnMenuElements();
 
-        _pInputHandler.SwitchActionMap("UI");
+        SpawnMenuElements();
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        _pInputHandler.SwitchActionMap("UI");
     }
 
     public void CloseMenu()
@@ -87,16 +89,16 @@ public class RadialMenuManager : MonoBehaviour
         isMenuActive = false;
         _aimCursor.gameObject.SetActive(true);
 
-        menuContainer.gameObject.SetActive (false);
-        
-        ClearMenuElements();
+        menuContainer.gameObject.SetActive(false);
 
-        _pInputHandler.SwitchActionMap("Player");
+        ClearMenuElements();
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
         _selectedIndex = -1;
+
+        _pInputHandler.SwitchActionMap("Player");
     }
 
     private void SpawnMenuElements()
@@ -150,19 +152,30 @@ public class RadialMenuManager : MonoBehaviour
         }
 
         BuildRequirement mainReq = reqs[0];
-        SceneInventoryController inventory = SceneInventoryController.Instance;
+        PlayerInventoryHolder inventory = FindFirstObjectByType<PlayerInventoryHolder>();
 
         _centralCostText.gameObject.SetActive(true);
         _centralMaterialIcon.gameObject.SetActive(true);
 
-        if (inventory != null)
+        if (inventory != null && mainReq.itemData != null)
         {
-            bool canAfford = inventory.HasItem(mainReq.itemId, mainReq.amount);
-            _centralCostText.text = inventory.GetTotalItemAmount(mainReq.itemId).ToString() + " / " + mainReq.amount.ToString();
+            int totalAmount = GetItemCount(inventory, mainReq.itemData);
+            bool canAfford = totalAmount >= mainReq.amount;
+            _centralCostText.text = totalAmount.ToString() + " / " + mainReq.amount.ToString();
             _centralCostText.color = canAfford ? Color.white : Color.red;
         }
 
         _centralMaterialIcon.sprite = elementSO.materialRequired;
+    }
+
+    private int GetItemCount(PlayerInventoryHolder inv, InventoryItemData item)
+    {
+        int count = 0;
+        foreach (var slot in inv.PrimaryInventorySystem.InventorySlots)
+            if (slot.ItemData == item) count += slot.StackSize;
+        foreach (var slot in inv.SecondaryInventorySystem.InventorySlots)
+            if (slot.ItemData == item) count += slot.StackSize;
+        return count;
     }
 
     private void ClearCentralCostUI()
@@ -170,22 +183,18 @@ public class RadialMenuManager : MonoBehaviour
         if (_centralCostText != null) _centralCostText.gameObject.SetActive(false);
         if (_centralMaterialIcon != null) _centralMaterialIcon.gameObject.SetActive(false);
     }
+
     private void ClearMenuElements()
     {
-        foreach (var piece in _spawnedPieces)
-        {
-            Destroy(piece.gameObject);
-        }
+        foreach (var piece in _spawnedPieces) Destroy(piece.gameObject);
         _spawnedPieces.Clear();
-
         _selectedIndex = -1;
     }
 
     private void CalculateMouseAngle(Vector2 mouse)
     {
         Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
-        Vector2 mousePosition = mouse;
-        Vector2 direction = mousePosition - screenCenter;
+        Vector2 direction = mouse - screenCenter;
 
         if (direction.magnitude < 20f)
         {
@@ -194,12 +203,9 @@ public class RadialMenuManager : MonoBehaviour
         }
 
         float angle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
-
-        if (angle < 0) 
-            angle += 360f;
+        if (angle < 0) angle += 360f;
 
         float stepLength = 360f / _currentMenu.elements.Length;
-
         int newIndex = Mathf.FloorToInt((angle + (stepLength / 2)) / stepLength);
         if (newIndex >= _currentMenu.elements.Length) newIndex = 0;
 
@@ -208,8 +214,7 @@ public class RadialMenuManager : MonoBehaviour
 
     private void ChangeHighlight(int newIndex)
     {
-        if (_selectedIndex == newIndex)
-            return;
+        if (_selectedIndex == newIndex) return;
 
         if (_selectedIndex != -1)
             _spawnedPieces[_selectedIndex].backgroundImage.color = normalColor;
@@ -219,7 +224,6 @@ public class RadialMenuManager : MonoBehaviour
         if (_selectedIndex != -1)
         {
             _spawnedPieces[_selectedIndex].backgroundImage.color = highlightColor;
-
             UpdateCentralCostUI(_currentMenu.elements[_selectedIndex]);
         }
         else
@@ -237,9 +241,7 @@ public class RadialMenuManager : MonoBehaviour
         }
         else
         {
-            if (_builder != null)
-                _builder.EquipPiece(selectedElement);
-
+            if (_builder != null) _builder.EquipPiece(selectedElement);
             CloseMenu();
         }
     }

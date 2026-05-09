@@ -3,12 +3,12 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "WeatherProfile", menuName = "Weather/Weather Profile")]
 public class WeatherProfileSO : ScriptableObject
 {
-    [Header("Colores del DÍA")]
+    [Header("Colores del DIA")]
     public Gradient dayDirectionalColor;
     public Gradient dayAmbientColor;
     public Gradient dayFogColor;
 
-    [Header("Cielo DÍA (Skybox)")]
+    [Header("Cielo DIA (Skybox)")]
     public Gradient daySkyTop;
     public Gradient daySkyBottom;
     public Gradient dayHorizon;

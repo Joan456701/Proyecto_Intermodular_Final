@@ -1,50 +1,58 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 [DisallowMultipleComponent]
-public class GasoilStation : MonoBehaviour, IWorldInteractable
+public class GasoilStation : MonoBehaviour, IInteractable
 {
+    public UnityAction<IInteractable> OnInteractionComplete { get; set; }
+
     [Header("Settings")]
+    [SerializeField] private InventoryItemData _carbonItemData;
     [SerializeField] private int _carbonCost = 1;
 
-    public bool TryInteract(SceneInventoryController inventoryController)
+    public void Interact(Interactor interactor, out bool interactSuccessful)
     {
-        if (inventoryController == null)
-            return false;
+        interactSuccessful = false;
+        var playerInventory = interactor.GetComponent<PlayerInventoryHolder>();
 
-        if (!inventoryController.HasItem("carbon", _carbonCost))
+        if (playerInventory == null || _carbonItemData == null) return;
+
+        int currentCarbon = 0;
+        foreach (var slot in playerInventory.PrimaryInventorySystem.InventorySlots)
         {
-            Debug.Log("Necesitas carbon para rellenar");
-            return false;
+            if (slot.ItemData == _carbonItemData) currentCarbon += slot.StackSize;
         }
 
-        if (OxygenSystem.Instance == null)
+        if (currentCarbon < _carbonCost)
         {
-            Debug.Log("Sistema de oxigeno no encontrado");
-            return false;
+            return;
         }
 
-        OxygenSystem.Instance.RefillOxygen();
-        inventoryController.ConsumeItem("carbon", _carbonCost);
-        Debug.Log("Has rellenado la gasolina usando carbon");
-        return true;
+        int amountToRemove = _carbonCost;
+        foreach (var slot in playerInventory.PrimaryInventorySystem.InventorySlots)
+        {
+            if (slot.ItemData == _carbonItemData)
+            {
+                int toTake = Mathf.Min(slot.StackSize, amountToRemove);
+                slot.RemoveFromStack(toTake);
+                amountToRemove -= toTake;
+
+                if (slot.StackSize <= 0) slot.ClearSlot();
+                playerInventory.PrimaryInventorySystem.OnInventorySlotChanged?.Invoke(slot);
+
+                if (amountToRemove <= 0) break;
+            }
+        }
+
+        if (OxygenSystem.Instance != null)
+        {
+            OxygenSystem.Instance.RefillOxygen();
+        }
+
+        Debug.Log("Has rellenado la gasolina usando carbón");
+        interactSuccessful = true;
+        OnInteractionComplete?.Invoke(this);
     }
 
-    public string GetInteractionPrompt()
-    {
-        if (OxygenSystem.Instance != null && 
-            OxygenSystem.Instance.HasOxygenTank && 
-            Mathf.Approximately(OxygenSystem.Instance.CurrentOxygenTime, OxygenSystem.Instance.MaxOxygenTime))
-        {
-            return "La gasolina ya esta llena";
-        }
-
-        SceneInventoryController inv = SceneInventoryController.Instance;
-        if (inv == null)
-            return "Necesitas carbon para rellenar";
-
-        if (!inv.HasItem("carbon", _carbonCost))
-            return "Necesitas carbon para rellenar";
-
-        return "Pulsar E para rellenar gasolina";
-    }
+    public void EndInteraction() { }
 }

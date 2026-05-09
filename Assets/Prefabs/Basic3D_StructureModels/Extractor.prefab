@@ -85,6 +85,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 280915bf763e8d74ca789669900bae30, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7513067301333676587}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 280915bf763e8d74ca789669900bae30, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 101025778417684406}
   m_SourcePrefab: {fileID: 100100000, guid: 280915bf763e8d74ca789669900bae30, type: 3}
 --- !u!1 &3833990150611749775 stripped
 GameObject:
@@ -155,3 +158,28 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &101025778417684406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3833990150611749775}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c6c2418c2f4b6f4b984dbd30a3680b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ExtractorController
+  _inventorySize: 10
+  _primaryInventorySystem:
+    _inventorySlots: []
+  _stoneData: {fileID: 11400000, guid: 4046ce20c574d8642a0a2550a7484304, type: 2}
+  _coalData: {fileID: 11400000, guid: fdf038bf4073aaa4c8d86384bcfca9ce, type: 2}
+  _ironData: {fileID: 11400000, guid: 560f0f8d5675bb842b772802061f0abc, type: 2}
+  _extractorSpeed: 5
+  _stoneChance: 50
+  _coalChance: 30
+  _metalChance: 20
+  _littleAmount: 80
+  _mediumAmount: 18
+  _maxAmount: 2

@@ -1,8 +1,11 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 [DisallowMultipleComponent]
-public class BaseLevelUpStation : MonoBehaviour, IWorldInteractable
+public class BaseLevelUpStation : MonoBehaviour, IInteractable
 {
+    public UnityAction<IInteractable> OnInteractionComplete { get; set; }
+
     [Header("References")]
     [SerializeField] private SaveZone _saveZone;
 
@@ -11,8 +14,8 @@ public class BaseLevelUpStation : MonoBehaviour, IWorldInteractable
     [SerializeField] private int _maxLevel = 3;
 
     [Header("Upgrade Cost")]
-    [SerializeField] private string _stickItemId = "stick";
-    [SerializeField] private string _stoneItemId = "stone";
+    [SerializeField] private InventoryItemData _stickItemData;
+    [SerializeField] private InventoryItemData _stoneItemData;
     [SerializeField] private int _baseStickCost = 2;
     [SerializeField] private int _baseStoneCost = 3;
 
@@ -24,76 +27,76 @@ public class BaseLevelUpStation : MonoBehaviour, IWorldInteractable
         {
             _saveZone = FindFirstObjectByType<SaveZone>();
         }
-
         ApplyCurrentLevelToSaveZone();
     }
 
-    public bool TryInteract(SceneInventoryController inventoryController)
+    public void Interact(Interactor interactor, out bool interactSuccessful)
     {
-        if (inventoryController == null)
-        {
-            return false;
-        }
+        interactSuccessful = false;
 
         if (_currentLevel >= _maxLevel)
         {
             Debug.Log("La base ya esta al nivel maximo.");
-            return false;
+            return;
         }
+
+        var playerInventory = interactor.GetComponent<PlayerInventoryHolder>();
+        if (playerInventory == null || _stickItemData == null || _stoneItemData == null) return;
 
         int stickCost = GetStickCostForNextLevel();
         int stoneCost = GetStoneCostForNextLevel();
 
-        if (!inventoryController.HasItem(_stickItemId, stickCost) || !inventoryController.HasItem(_stoneItemId, stoneCost))
+        if (GetItemCount(playerInventory, _stickItemData) < stickCost ||
+            GetItemCount(playerInventory, _stoneItemData) < stoneCost)
         {
             Debug.Log("Faltan materiales para mejorar la base. Necesitas " + stickCost + " palos y " + stoneCost + " piedras.");
-            return false;
+            return;
         }
 
-        if (!inventoryController.ConsumeItems((_stickItemId, stickCost), (_stoneItemId, stoneCost)))
-        {
-            Debug.Log("No se pudieron consumir los materiales de mejora.");
-            return false;
-        }
+        ConsumeItem(playerInventory, _stickItemData, stickCost);
+        ConsumeItem(playerInventory, _stoneItemData, stoneCost);
 
         _currentLevel++;
         ApplyCurrentLevelToSaveZone();
 
         Debug.Log("Base mejorada al nivel " + _currentLevel + ".");
-        return true;
+        interactSuccessful = true;
+        OnInteractionComplete?.Invoke(this);
     }
 
-    public string GetInteractionPrompt()
+    public void EndInteraction() { }
+
+    private int GetItemCount(PlayerInventoryHolder inventory, InventoryItemData itemToCheck)
     {
-        if (_currentLevel >= _maxLevel)
+        int count = 0;
+        foreach (var slot in inventory.PrimaryInventorySystem.InventorySlots)
         {
-            return "Base al nivel maximo";
+            if (slot.ItemData == itemToCheck) count += slot.StackSize;
         }
+        return count;
+    }
 
-        int nextLevel = _currentLevel + 1;
-        int stickCost = GetStickCostForNextLevel();
-        int stoneCost = GetStoneCostForNextLevel();
-
-        SceneInventoryController inventoryController = SceneInventoryController.Instance;
-        if (inventoryController != null &&
-            (!inventoryController.HasItem(_stickItemId, stickCost) || !inventoryController.HasItem(_stoneItemId, stoneCost)))
+    private void ConsumeItem(PlayerInventoryHolder inventory, InventoryItemData itemToConsume, int amount)
+    {
+        int amountToRemove = amount;
+        foreach (var slot in inventory.PrimaryInventorySystem.InventorySlots)
         {
-            return "Nivel " + nextLevel + ": necesitas " + stickCost + " palos y " + stoneCost + " piedras";
+            if (slot.ItemData == itemToConsume)
+            {
+                int toTake = Mathf.Min(slot.StackSize, amountToRemove);
+                slot.RemoveFromStack(toTake);
+                amountToRemove -= toTake;
+
+                if (slot.StackSize <= 0) slot.ClearSlot();
+                inventory.PrimaryInventorySystem.OnInventorySlotChanged?.Invoke(slot);
+
+                if (amountToRemove <= 0) break;
+            }
         }
-
-        return "Pulsar E para mejorar base a nivel " + nextLevel;
     }
 
-    private int GetStickCostForNextLevel()
-    {
-        return GetScaledCost(_baseStickCost);
-    }
-
-    private int GetStoneCostForNextLevel()
-    {
-        return GetScaledCost(_baseStoneCost);
-    }
-
+    private int GetStickCostForNextLevel() => GetScaledCost(_baseStickCost);
+    private int GetStoneCostForNextLevel() => GetScaledCost(_baseStoneCost);
     private int GetScaledCost(int baseCost)
     {
         int upgradesAlreadyDone = Mathf.Max(0, _currentLevel - 1);
@@ -102,11 +105,7 @@ public class BaseLevelUpStation : MonoBehaviour, IWorldInteractable
 
     private void ApplyCurrentLevelToSaveZone()
     {
-        if (_saveZone == null)
-        {
-            return;
-        }
-
+        if (_saveZone == null) return;
         _currentLevel = Mathf.Clamp(_currentLevel, 1, Mathf.Max(1, _maxLevel));
         _saveZone.ApplyBaseLevel(_currentLevel);
     }

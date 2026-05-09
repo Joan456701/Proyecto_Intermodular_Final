@@ -26,10 +26,14 @@ public class OxygenSystem : MonoBehaviour
 
     public float CurrentOxygenTime => _currentOxygenTime;
     public float MaxOxygenTime => _maxOxygenTime;
+
     public bool IsPaused => _isPaused;
     public bool HasOxygenTank => _hasOxygenTank;
 
     private float _debugLogTimer;
+
+    private PlayerInventoryHolder _playerInventory;
+    [SerializeField] private InventoryItemData _oxygenTankData; 
 
     private void Awake()
     {
@@ -53,27 +57,23 @@ public class OxygenSystem : MonoBehaviour
             _firstPersonController = FindFirstObjectByType<FirstPersonController>();
         }
 
+        _playerInventory = FindFirstObjectByType<PlayerInventoryHolder>();
+
         UpdateOxygenUI();
     }
 
     private void Update()
     {
+        CheckForTank();
+
         if (_hasOxygenTank && !_isPaused && Time.timeScale > 0)
         {
             _currentOxygenTime -= Time.deltaTime;
-
-            _debugLogTimer += Time.deltaTime;
-            if (_debugLogTimer >= 1f)
-            {
-                _debugLogTimer = 0f;
-                Debug.Log("Oxigeno restante: " + Mathf.CeilToInt(_currentOxygenTime) + " segundos");
-            }
 
             if (_currentOxygenTime <= 0)
             {
                 _currentOxygenTime = 0;
                 _isTakingOxygenDamage = true;
-                Debug.Log("Oxigeno agotado! Comenzando a perder vida...");
             }
 
             UpdateOxygenUI();
@@ -91,14 +91,24 @@ public class OxygenSystem : MonoBehaviour
         }
         else if (!_hasOxygenTank)
         {
-            if (_oxygenSlider != null)
-            {
-                _oxygenSlider.gameObject.SetActive(false);
-            }
-            if (_oxygenTimerText != null)
-            {
-                _oxygenTimerText.gameObject.SetActive(false);
-            }
+            if (_oxygenSlider != null) _oxygenSlider.gameObject.SetActive(false);
+            if (_oxygenTimerText != null) _oxygenTimerText.gameObject.SetActive(false);
+        }
+    }
+
+    private void CheckForTank()
+    {
+        if (_playerInventory == null || _oxygenTankData == null) return;
+
+        bool inPrimary = _playerInventory.PrimaryInventorySystem.ContainsItem(_oxygenTankData, out _);
+        bool inSecondary = _playerInventory.SecondaryInventorySystem.ContainsItem(_oxygenTankData, out _);
+
+        _hasOxygenTank = inPrimary || inSecondary;
+
+        if (_hasOxygenTank)
+        {
+            if (_oxygenSlider != null && !_oxygenSlider.gameObject.activeSelf) _oxygenSlider.gameObject.SetActive(true);
+            if (_oxygenTimerText != null && !_oxygenTimerText.gameObject.activeSelf) _oxygenTimerText.gameObject.SetActive(true);
         }
     }
 
@@ -136,31 +146,8 @@ public class OxygenSystem : MonoBehaviour
         UpdateOxygenUI();
     }
 
-    public void RemoveOxygenTank()
-    {
-        _hasOxygenTank = false;
-        _currentOxygenTime = 0;
-        UpdateOxygenUI();
-    }
-
-    public void GiveOxygenTank()
-    {
-        _hasOxygenTank = true;
-        _currentOxygenTime = _maxOxygenTime;
-        UpdateOxygenUI();
-    }
-
-    private void PlayerDie()
-    {
-        if (_firstPersonController != null)
-        {
-            _firstPersonController.enabled = false;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-
-        Debug.Log("El jugador ha muerto por falta de oxigeno");
-    }
+    public void RemoveOxygenTank() { }
+    public void GiveOxygenTank() { }
 
     private void UpdateOxygenUI()
     {

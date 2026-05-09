@@ -708,17 +708,6 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""c3c80a84-4446-4682-a3b8-b8a623d58d61"",
-                    ""path"": ""<Keyboard>/tab"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""CancelInteract"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""959e00a4-718b-4638-87d7-0fcaa0ab7de9"",
                     ""path"": ""<Mouse>/position"",
                     ""interactions"": """",

@@ -123,21 +123,17 @@ public class FirstPersonBuilder : MonoBehaviour
 
             if (Physics.Raycast(origin, direction, out RaycastHit hitInfo, _raycastDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
             {
-                //Pide al gridManger que le diga que piso es
                 Grid<GridObject> currentGrid = GridManager.Instance.GetGrid(hitInfo.point);
                 currentGrid.GetXZ(hitInfo.point, out int x, out int z);
                 GridObject gridObject = currentGrid.GetGridObject(x, z);
 
-                //Si la casilla esta libre contruye el suelo y lo guarda en su memoria
                 if (gridObject.CanBuild())
                 {
                     Vector3 buildPosition = currentGrid.GetWorldPosition(x, z);
                     Vector3 centerPosition = buildPosition + (_cellSizeDimension/2);
 
-                    //Comprobamos si hay algun objeto en esa casilla que nos bloquee la construccion
                     if (!Physics.CheckBox(centerPosition, _cellSizeDimension / 2, Quaternion.identity, _obstacleLayer))
                     {
-                        // Comprobamos y cobramos los materiales del Suelo
                         if (CheckAndConsumeRequirements(_currentBuilding.requirements))
                         {
                             Transform builtObject = Instantiate(_currentBuilding.prefab, buildPosition, Quaternion.identity);
@@ -326,29 +322,35 @@ public class FirstPersonBuilder : MonoBehaviour
 
     private bool CheckAndConsumeRequirements(BuildRequirement[] requirements)
     {
-        if (requirements == null || requirements.Length == 0)
-            return true;
+        if (requirements == null || requirements.Length == 0) return true;
 
-        SceneInventoryController inventory = SceneInventoryController.Instance;
-        if (inventory == null)
-            return false;
+        PlayerInventoryHolder inventory = FindFirstObjectByType<PlayerInventoryHolder>();
+        if (inventory == null) return false;
 
         for (int i = 0; i < requirements.Length; i++)
         {
-            if (!inventory.HasItem(requirements[i].itemId, requirements[i].amount))
+            if (GetItemCount(inventory, requirements[i].itemData) < requirements[i].amount)
             {
-                Debug.Log("Faltan materiales. Necesitas más: " + requirements[i].itemId);
                 return false;
             }
         }
 
-        var itemsToConsume = new (string itemID, int amount)[requirements.Length];
         for (int i = 0; i < requirements.Length; i++)
         {
-            itemsToConsume[i] = (requirements[i].itemId, requirements[i].amount);
+            inventory.TryConsumeItem(requirements[i].itemData, requirements[i].amount);
         }
 
-        return inventory.ConsumeItems(itemsToConsume);
+        return true;
+    }
+
+    private int GetItemCount(PlayerInventoryHolder inv, InventoryItemData item)
+    {
+        int count = 0;
+        foreach (var slot in inv.PrimaryInventorySystem.InventorySlots)
+            if (slot.ItemData == item) count += slot.StackSize;
+        foreach (var slot in inv.SecondaryInventorySystem.InventorySlots)
+            if (slot.ItemData == item) count += slot.StackSize;
+        return count;
     }
     private void OnDrawGizmos()
     {
