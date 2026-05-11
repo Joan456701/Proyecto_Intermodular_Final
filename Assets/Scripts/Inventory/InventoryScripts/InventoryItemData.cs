@@ -1,5 +1,13 @@
 using UnityEngine;
 
+public enum ToolType
+{
+    None,       
+    Pickaxe,    
+    Axe,        
+    Spear       
+}
+
 [CreateAssetMenu(menuName = "Inventory System/Inventory Item")]
 public class InventoryItemData : ScriptableObject
 {
@@ -12,4 +20,12 @@ public class InventoryItemData : ScriptableObject
     public int maxStackSize;
 
     public GameObject itemPrefab;
+    public ToolType toolType = ToolType.None;
+
+    [Header("Consumible")]
+    public bool isConsumable;
+    public int healAmount;
+
+    [Header("Herramientas")]
+    public WeaponDataSO weaponData;
 }

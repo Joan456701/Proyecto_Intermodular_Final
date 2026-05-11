@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 7889686439601672929}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3.537, y: 1.94, z: 0}
+  m_LocalPosition: {x: -3.44, y: 1.94, z: 0}
   m_LocalScale: {x: 1, y: 0.10044, z: 2.9814}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -100,6 +100,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3c3904f56c99114bbe8277dc4342fd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloorEdgePlacedObject
+  _targetType: 4
   _maxHealth: 1
   _floorEdgeObjectTypeSO: {fileID: 11400000, guid: 0315ef634ead1fd4697b916e660ed777, type: 2}
 --- !u!64 &3283288891942227153

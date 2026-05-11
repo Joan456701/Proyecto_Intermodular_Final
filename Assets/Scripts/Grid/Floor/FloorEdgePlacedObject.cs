@@ -1,8 +1,13 @@
 using UnityEngine;
 using Unity.AI.Navigation;
 
-public class FloorEdgePlacedObject : MonoBehaviour, IDamagable
+public class FloorEdgePlacedObject : MonoBehaviour, IDamagable, ITargetable
 {
+    [Header("Tipo de objetivo")]
+    [SerializeField] private TargetType _targetType = TargetType.WoodStructure;
+    public TargetType TargetType => _targetType;
+
+
     [Header("Vida Estructura")]
     [SerializeField] private int _maxHealth;
     private int _health;

@@ -3,8 +3,12 @@ using System.Runtime.CompilerServices;
 using Unity.AI.Navigation;
 using UnityEngine;
 
-public class FloorPlacedObject : MonoBehaviour, IDamagable
+public class FloorPlacedObject : MonoBehaviour, IDamagable, ITargetable
 {
+    [Header("Tipo de objetivo")]
+    [SerializeField] private TargetType _targetType = TargetType.WoodStructure;
+    public TargetType TargetType => _targetType;
+
     //Las 4 direcciones
     public enum Edge
     {

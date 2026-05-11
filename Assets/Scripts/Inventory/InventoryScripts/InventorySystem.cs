@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityEngine;
 using System.Linq;
-using UnityEditor.Search;
 
 [System.Serializable]
 public class InventorySystem 
@@ -53,8 +52,7 @@ public class InventorySystem
     public bool ContainsItem(InventoryItemData itemToAdd, out List<InventorySlot> invSlot)
     {
         invSlot = InventorySlots.Where(i => i.ItemData == itemToAdd).ToList();
-
-        return invSlot == null ? false : true;
+        return invSlot.Count > 0;
     }
 
     public bool HasFreeSlot(out InventorySlot freeSlot)

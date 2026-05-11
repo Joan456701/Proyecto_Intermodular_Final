@@ -29,7 +29,7 @@ public class PlayerInputHandler : MonoBehaviour
     public bool dropAllTriggered { get; private set; }
     public bool dropOneTriggered;
     public bool dropHalfTriggered;
-    public bool eatTriggered { get; private set; }
+    public bool eatTriggered;
     public bool equipTriggered;
     public bool inventoryTriggered;
     public bool undoTriggered;

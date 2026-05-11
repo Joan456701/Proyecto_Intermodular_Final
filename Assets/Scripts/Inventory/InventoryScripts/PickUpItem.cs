@@ -1,12 +1,16 @@
 using UnityEngine;
 
 [RequireComponent (typeof(SphereCollider))]
+[RequireComponent (typeof(Rigidbody))]
 public class PickUpItem : MonoBehaviour
 {
     public float pickUpRadius = 1f;
     public InventoryItemData itemData;
 
     private SphereCollider _collider;
+    
+    [SerializeField] private float _pickupDelay = .75f;
+    private bool _canPickUp = false;
 
     private void Awake()
     {
@@ -15,8 +19,22 @@ public class PickUpItem : MonoBehaviour
         _collider.radius = pickUpRadius;
     }
 
+    private void Update()
+    {
+        if (!_canPickUp)
+        {
+            _pickupDelay -= Time.deltaTime;
+            if (_pickupDelay <= 0)
+            {
+                _canPickUp = true;
+            }
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
+        if (!_canPickUp) return;
+
         var inventory = other.transform.GetComponent<PlayerInventoryHolder>();
         
         if (!inventory) return;

@@ -2,8 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class CentryController : InventoryHolder, IDamagable, IInteractable
+public class CentryController : InventoryHolder, IDamagable, IInteractable, ITargetable
 {
+    [Header("Tipo de objetivo")]
+    [SerializeField] private TargetType _targetType = TargetType.LooseObject;
+    public TargetType TargetType => _targetType;
+
     [Header("Referencias")]
     [SerializeField] private GameObject _proyectile;
     [SerializeField] private Transform _centryRotation;
@@ -30,7 +34,7 @@ public class CentryController : InventoryHolder, IDamagable, IInteractable
 
     private List<GameObject> _enemiesList = new List<GameObject>();
 
-    public UnityAction<IInteractable> OnInteractionComplete { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+    public UnityAction<IInteractable> OnInteractionComplete { get; set; }
 
     private void Start()
     {
@@ -177,7 +181,12 @@ public class CentryController : InventoryHolder, IDamagable, IInteractable
     {
         if (_ammoTypeData == null) return false;
 
-        return PrimaryInventorySystem.ContainsItem(_ammoTypeData, out _);
+        foreach (var slot in PrimaryInventorySystem.InventorySlots)
+        {
+            if (slot.ItemData == _ammoTypeData && slot.StackSize > 0)
+                return true;
+        }
+        return false;
     }
 
     private void ConsumeAmmo()

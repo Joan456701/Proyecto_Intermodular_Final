@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 9122867881334323061}
   - component: {fileID: 5497697729175690719}
   - component: {fileID: 2489251434516340770}
+  - component: {fileID: 6696040563648886025}
   m_Layer: 0
   m_Name: RockProyectile
   m_TagString: Untagged
@@ -136,7 +137,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 0
+  m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
@@ -153,3 +154,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 489a8bf0710a2364dbba6083175f61bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProyectileComponent
+  _bulletDamage: 1
+--- !u!135 &6696040563648886025
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7889488404639355196}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}

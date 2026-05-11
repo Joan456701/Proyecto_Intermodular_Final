@@ -9,6 +9,7 @@ public class HotbarDisplay : StaticInventoryDisplay
     private PlayerInputHandler _pInputHandler;
 
     public static event Action<InventoryItemData> OnHotbarSlotChanged;
+    public static event Action<int> OnHotbarIndexChanged;
 
     protected override void Start()
     {
@@ -40,6 +41,7 @@ public class HotbarDisplay : StaticInventoryDisplay
         currentIndex = newIndex;
         _slots[currentIndex].ToggleHighlight();
 
+        OnHotbarIndexChanged?.Invoke(currentIndex);
         NotifyCurrentSlot();
     }
 

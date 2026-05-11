@@ -1,8 +1,12 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyController : MonoBehaviour, IDamagable
+public class EnemyController : MonoBehaviour, IDamagable, ITargetable
 {
+    [Header("Tipo de objetivo")]
+    [SerializeField] private TargetType _targetType = TargetType.Enemy;
+    public TargetType TargetType => _targetType;
+
     [Header("Rango Deteccion")]
     [SerializeField] private float _listeningRange;
     [SerializeField] private float _vanishDistance;
@@ -21,8 +25,12 @@ public class EnemyController : MonoBehaviour, IDamagable
     [SerializeField] protected int _maxHealth;
     private int _health;
 
-    [Header("Inteligencia de Destrucción")]
+    [Header("Inteligencia de Destruccion")]
     [SerializeField] private float _maxDetourMultiplier = 1.5f;
+
+    [Header("Botín del Enemigo")]
+    [SerializeField] protected LootObject[] _standardDrops;
+    [SerializeField] protected LootObject[] _exclusiveDrops;
 
     protected BoxCollider _spaceshipCollider;
     protected Transform _spaceshipTarget;
@@ -244,7 +252,10 @@ public class EnemyController : MonoBehaviour, IDamagable
         _health -= damage;
 
         if (_health <= 0)
-            Destroy(gameObject);
+        {
+            GiveLoot();
+            Destroy(gameObject); 
+        }
     }
 
     private float CalculatePathLength(NavMeshPath path)
@@ -289,6 +300,56 @@ public class EnemyController : MonoBehaviour, IDamagable
         isJumping = false;
     }
 
+    private void GiveLoot()
+    {
+        PlayerInventoryHolder playerInventory = FindFirstObjectByType<PlayerInventoryHolder>();
+        DayNightSpawnManager timeManager = FindFirstObjectByType<DayNightSpawnManager>();
+
+        if (playerInventory == null) return;
+
+        foreach (LootObject item in _standardDrops)
+        {
+            TryDropItem(item, playerInventory, timeManager);
+        }
+
+        foreach (LootObject item in _exclusiveDrops)
+        {
+            if (TryDropItem(item, playerInventory, timeManager))
+            {
+                break;
+            }
+        }
+    }
+
+    private bool TryDropItem(LootObject item, PlayerInventoryHolder inventory, DayNightSpawnManager timeManager)
+    {
+        if (timeManager != null)
+        {
+            bool isDay = timeManager.CurrentState == DayNightSpawnManager.DayCycleState.Day;
+
+            if (item.timeCondition == TimeCondition.OnlyNight && isDay) return false;
+            if (item.timeCondition == TimeCondition.OnlyDay && !isDay) return false;
+        }
+
+        int die = Random.Range(0, 100);
+
+        if (die <= item.probability)
+        {
+            int dropAmount = Random.Range(item.minAmount, item.maxAmount + 1);
+
+            if (item.itemData != null && dropAmount > 0)
+            {
+                bool addedToPrimary = inventory.PrimaryInventorySystem.AddToInventory(item.itemData, dropAmount);
+
+                if (!addedToPrimary)
+                {
+                    inventory.SecondaryInventorySystem.AddToInventory(item.itemData, dropAmount);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

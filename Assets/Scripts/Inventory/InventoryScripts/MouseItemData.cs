@@ -122,6 +122,8 @@ public class MouseItemData : MonoBehaviour
         {
             rb = droppedItem.AddComponent<Rigidbody>();
         }
+        rb.isKinematic = false;
+        rb.useGravity = true;
 
         if (droppedItem.GetComponent<Collider>() == null)
         {
@@ -133,6 +135,11 @@ public class MouseItemData : MonoBehaviour
             pickUpScript = droppedItem.AddComponent<PickUpItem>();
         }
         pickUpScript.itemData = itemDataToDrop;
+
+        Vector3 throwDirection = _mainCamera.transform.forward + (Vector3.up * 0.2f);
+        float throwForce = 3f; 
+
+        rb.AddForce(throwDirection.normalized * throwForce, ForceMode.Impulse);
     }
 
     public bool IsPointerOverUIObject()

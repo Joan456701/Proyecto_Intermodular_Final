@@ -17,6 +17,4 @@ MonoBehaviour:
   ghostPrefab: {fileID: 6965880631862569420, guid: a2678c59d503faf4d87b866319e5ee39, type: 3}
   whith: 1
   hieght: 1
-  requirements:
-  - itemData: {fileID: 11400000, guid: f2e16c6dba261be4dab5ffe065446b75, type: 2}
-    amount: 1
+  requirements: []

@@ -1,5 +1,12 @@
 using UnityEngine;
+using UnityEngine.InputSystem.iOS;
 
+public enum TimeCondition
+{
+    Always,
+    OnlyDay,
+    OnlyNight
+}
 [System.Serializable]
 public struct LootObject
 {
@@ -9,16 +16,24 @@ public struct LootObject
 
     [Range(0, 100)]
     public int probability;
+
+    public TimeCondition timeCondition;
 }
-public class PrimitiveMaterials : MonoBehaviour, IDamagable
+public class PrimitiveMaterials : MonoBehaviour, IDamagable, ITargetable
 {
     [Header("Material Settings")]
     [SerializeField] private int _maxHealth;
 
     private int _currentHealth;
 
-    [Header("List of Materials")]
-    [SerializeField] private LootObject[] lootObject;
+    [Header("Botin estandar")]
+    [SerializeField] private LootObject[] _standardDrops;
+
+    [Header("Botin exclusivo")]
+    [SerializeField] private LootObject[] _exclusiveDrops;
+
+    [SerializeField] private TargetType _targetType = TargetType.Rock;
+    public TargetType TargetType => _targetType;
 
     void Start()
     {
@@ -38,27 +53,51 @@ public class PrimitiveMaterials : MonoBehaviour, IDamagable
     private void GiveLoot()
     {
         PlayerInventoryHolder playerInventory = FindFirstObjectByType<PlayerInventoryHolder>();
+        DayNightSpawnManager timeManager = FindFirstObjectByType<DayNightSpawnManager>();
 
         if (playerInventory == null) return;
 
-        foreach (LootObject item in lootObject)
+        foreach (LootObject item in _standardDrops)
         {
-            int die = Random.Range(0, 100);
+            TryDropItem(item, playerInventory, timeManager);
+        }
 
-            if (die <= item.probability)
+        foreach (LootObject item in _exclusiveDrops)
+        {
+            if (TryDropItem(item, playerInventory, timeManager))
             {
-                int dropAmount = Random.Range(item.minAmount, item.maxAmount + 1);
-
-                if (item.itemData != null && dropAmount > 0)
-                {
-                    bool addToPrimary = playerInventory.PrimaryInventorySystem.AddToInventory(item.itemData, dropAmount);
-
-                    if (!addToPrimary)
-                    {
-                        playerInventory.SecondaryInventorySystem.AddToInventory(item.itemData, dropAmount);
-                    }
-                }
+                break;
             }
         }
+    }
+
+    private bool TryDropItem(LootObject item, PlayerInventoryHolder inventory, DayNightSpawnManager timeManager)
+    {
+        if (timeManager != null)
+        {
+            bool isDay = timeManager.CurrentState == DayNightSpawnManager.DayCycleState.Day;
+
+            if (item.timeCondition == TimeCondition.OnlyNight && isDay) return false;
+            if (item.timeCondition == TimeCondition.OnlyDay && !isDay) return false;
+        }
+
+        int die = Random.Range(0, 100);
+
+        if (die <= item.probability)
+        {
+            int dropAmount = Random.Range(item.minAmount, item.maxAmount + 1);
+
+            if (item.itemData != null && dropAmount > 0)
+            {
+                bool addedToPrimary = inventory.PrimaryInventorySystem.AddToInventory(item.itemData, dropAmount);
+
+                if (!addedToPrimary)
+                {
+                    inventory.SecondaryInventorySystem.AddToInventory(item.itemData, dropAmount);
+                }
+                return true; 
+            }
+        }
+        return false;
     }
 }

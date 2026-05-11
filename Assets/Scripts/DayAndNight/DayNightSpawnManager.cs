@@ -9,6 +9,8 @@ public class DayNightSpawnManager : MonoBehaviour
         Night
     }
 
+    public DayCycleState CurrentState => _currentState;
+
     [Header("Control iluminacion del sol")]
     [SerializeField] private Transform _sunTransform;
     [SerializeField] private WeatherProfileSO _normalWeather;
@@ -18,11 +20,13 @@ public class DayNightSpawnManager : MonoBehaviour
     private WeatherProfileSO _currentWeather;
 
     [Header("Duracion del dia y la noche")]
+    [SerializeField, Range(0f, 1f)] private float _nightActiveSpawnPercentage = 0.2f;
     [SerializeField] private float _dayDuration;
     [SerializeField] private float _nightDuration;
 
     [Header("Numero de rondas")]
     [SerializeField] private int _maxNightsSurvive;
+    
     private DayCycleState _currentState;
     private int _nightsCount = -1;
     private float _timer;
@@ -31,6 +35,15 @@ public class DayNightSpawnManager : MonoBehaviour
     [SerializeField] private GameObject _enemyPrefab;
     private List<GameObject> _enemyInScene = new List<GameObject>();
     private List<Transform> _spawnPoints = new List<Transform>();
+
+    [Header("Riesgo durnate la exploracion")]
+    [SerializeField, Range(0f, 1f)] private float _extraWaveDurationPercentage = 0.15f;
+    [SerializeField, Range(0, 100)] private int _randomWaveChance = 20;
+    [SerializeField] private float _checkIntertval = 10;
+
+    private float _randomWaveTimer = 0;
+    private bool _isExtraWaveActive = false; 
+    private float _currentExtraWaveTimer = 0;
 
     [Header("Dificultad de spawneo")]
     [SerializeField] private int _baseMaxEnemies = 5;
@@ -79,6 +92,7 @@ public class DayNightSpawnManager : MonoBehaviour
 
     private void StartDay()
     {
+        _isExtraWaveActive = false;
         _currentState = DayCycleState.Day;
         _timer = _dayDuration;
 
@@ -90,6 +104,7 @@ public class DayNightSpawnManager : MonoBehaviour
 
     private void StartNight()
     {
+        _isExtraWaveActive = false;
         _currentState = DayCycleState.Night;
         _timer = _nightDuration;
         _nightsCount++;
@@ -108,21 +123,59 @@ public class DayNightSpawnManager : MonoBehaviour
 
     private void HandleNightSpawning()
     {
+        CleanDeadEnemies();
+
+        float nightProgress = 1f - (_timer / _nightDuration);
+
+        if (nightProgress <= _nightActiveSpawnPercentage)
+            RunStandardHordeLogic();
+        else
+            HandleExploratioRisk();
+    }
+    private void RunStandardHordeLogic()
+    {
         _spawnTimer += Time.deltaTime;
 
         int maxEnemiesThisNight = _baseMaxEnemies + (_extraEnemiesNight * _nightsCount);
-
         int difficultyTier = (_nightsCount + 1) / _nightsToIncreaseSpeed;
 
         float currentSpawnRate = _baseSpawnRate - (_spawnRateDecrease * difficultyTier);
         currentSpawnRate = Mathf.Max(currentSpawnRate, _minSpawnRate);
 
-        CleanDeadEnemies();
-
         if (_spawnTimer >= currentSpawnRate && _enemyInScene.Count < maxEnemiesThisNight)
         {
             _spawnTimer = 0;
             SpawnEnemy();
+        }
+    }
+
+    private void HandleExploratioRisk()
+    {
+        if (_isExtraWaveActive)
+        {
+            RunStandardHordeLogic();
+
+            _currentExtraWaveTimer -=Time.deltaTime;
+            if (_currentExtraWaveTimer <= 0)
+                _isExtraWaveActive = false;
+        }
+        else
+        {
+            if (_enemyInScene.Count == 0)
+            {
+                _randomWaveTimer += Time.deltaTime;
+
+                if (_randomWaveTimer >= _checkIntertval)
+                {
+                    _randomWaveTimer = 0;
+
+                    if (Random.Range(0,100) <= _randomWaveChance)
+                    {
+                        _isExtraWaveActive = true;
+                        _currentExtraWaveTimer = _nightDuration * _extraWaveDurationPercentage;
+                    }
+                }
+            }
         }
     }
 
@@ -234,5 +287,42 @@ public class DayNightSpawnManager : MonoBehaviour
         RenderSettings.skybox.SetColor("_HorizonLineColor", horizon);
 
         _sunTransform.rotation = Quaternion.Euler(currentAngle, -30f, 0f);
+    }
+
+    public void SkipToNextDay()
+    {
+        _timer = 0f;
+        _isExtraWaveActive = false;
+    }
+
+    public bool CanPlayerSleep(out string reason)
+    {
+        if (_currentState == DayCycleState.Day)
+        {
+            reason = "No puedes dormir durante el día.";
+            return false;
+        }
+
+        float nightProgress = 1f - (_timer / _nightDuration);
+        if (nightProgress <= _nightActiveSpawnPercentage)
+        {
+            reason = "Aún es pronto, la horda obligatoria no ha terminado.";
+            return false;
+        }
+
+        if (_isExtraWaveActive)
+        {
+            reason = "No puedes dormir, estás sufriendo un ataque sorpresa.";
+            return false;
+        }
+
+        if (_enemyInScene.Count > 0)
+        {
+            reason = "No puedes dormir, hay enemigos acechando en la zona.";
+            return false;
+        }
+
+        reason = "";
+        return true;
     }
 }

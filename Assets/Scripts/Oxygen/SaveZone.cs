@@ -7,6 +7,7 @@ public class SaveZone : MonoBehaviour
     [SerializeField] private Collider _zoneCollider;
     [SerializeField] private Transform _visualTransform;
     [SerializeField] private float _sizeIncreasePerLevel = 0.5f;
+    [SerializeField] private GasoilStation _linkedStation;
 
     private int _currentBaseLevel = 1;
     private bool _baseColliderSizeCached;
@@ -15,6 +16,8 @@ public class SaveZone : MonoBehaviour
     private Vector3 _baseBoxSize;
     private float _baseCapsuleRadius;
     private float _baseCapsuleHeight;
+    private bool _isPlayerInside = false;
+    private bool _lastShieldState = false;
 
     public int CurrentBaseLevel => _currentBaseLevel;
 
@@ -37,10 +40,28 @@ public class SaveZone : MonoBehaviour
 
         CacheBaseColliderSize();
         ApplyBaseLevel(_currentBaseLevel);
+    }
 
-        if (_showDebugInfo)
+    private void Update()
+    {
+        if (_isPlayerInside && OxygenSystem.Instance != null)
         {
-            Debug.Log("SaveZone inicializado. Collider: " + (_zoneCollider != null ? _zoneCollider.name : "null"));
+            bool currentShieldState = _linkedStation != null && _linkedStation.IsShieldActive;
+
+            if (currentShieldState != _lastShieldState)
+            {
+                OxygenSystem.Instance.SetPaused(currentShieldState);
+
+                if (!currentShieldState)
+                {
+                    Debug.LogWarning("¡LA ESTACIÓN SE HA QUEDADO SIN ENERGÍA! Escudo desactivado.");
+                }
+                else
+                {
+                    Debug.Log("¡La estación vuelve a tener energía! Escudo reactivado.");
+                }
+                _lastShieldState = currentShieldState;
+            }
         }
     }
 
@@ -132,14 +153,21 @@ public class SaveZone : MonoBehaviour
     {
         if (IsPlayer(other))
         {
+            _isPlayerInside = true;
+
             if (OxygenSystem.Instance != null)
             {
-                OxygenSystem.Instance.SetPaused(true);
-                Debug.Log("=== ENTRADA A SAVEZONE === Oxigeno pausado");
-            }
-            else
-            {
-                Debug.LogWarning("OxygenSystem no encontrado");
+                _lastShieldState = _linkedStation != null && _linkedStation.IsShieldActive;
+                OxygenSystem.Instance.SetPaused(_lastShieldState);
+
+                //if (_lastShieldState)
+                //{
+                //    Debug.Log("--- ENTRADA A SAVEZONE --- Escudo activo, oxigeno pausado");
+                //}
+                //else
+                //{
+                //    Debug.LogWarning("--- ENTRADA A SAVEZONE --- Entrando sin energía, escudo apagado");
+                //}
             }
         }
     }
@@ -148,20 +176,12 @@ public class SaveZone : MonoBehaviour
     {
         if (IsPlayer(other))
         {
+            _isPlayerInside = false;
+
             if (OxygenSystem.Instance != null)
             {
                 OxygenSystem.Instance.SetPaused(false);
-                Debug.Log("=== SALIDA DE SAVEZONE === Oxigeno resumido");
             }
-        }
-    }
-
-    private void OnTriggerStay(Collider other)
-    {
-        if (IsPlayer(other) && OxygenSystem.Instance != null && !OxygenSystem.Instance.IsPaused)
-        {
-            OxygenSystem.Instance.SetPaused(true);
-            Debug.Log("=== SAVEZONE STAY === Oxigeno pausado");
         }
     }
 
@@ -170,11 +190,6 @@ public class SaveZone : MonoBehaviour
         bool hasCharacterController = other.GetComponent<CharacterController>() != null;
         bool hasPlayerName = other.name.Contains("Player");
         bool isPlayerTag = other.CompareTag("Player");
-
-        if (_showDebugInfo && (hasCharacterController || hasPlayerName))
-        {
-            Debug.Log("SaveZone detecto: " + other.name + " - CC: " + hasCharacterController + ", Name: " + hasPlayerName + ", Tag: " + isPlayerTag);
-        }
 
         return hasCharacterController || hasPlayerName || isPlayerTag;
     }

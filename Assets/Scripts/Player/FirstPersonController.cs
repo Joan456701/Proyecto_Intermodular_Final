@@ -1,5 +1,3 @@
-using System.Diagnostics.Tracing;
-using static UnityEngine.UI.Image;
 using UnityEngine;
 using System;
 
@@ -27,9 +25,12 @@ public class FirstPersonController : MonoBehaviour, IDamagable
     [SerializeField] private Camera _mainCamera;
     private Interactor _interactor;
 
-    [Header("Death Settings")]
-    [SerializeField] private float _playerHealth = 100f;
+    [Header("Health Settings")]
+    [SerializeField] private float _playerHealth;
     [SerializeField] private float _maxPlayerHealth = 100f;
+
+    [Header("Daño reallizado")]
+    [SerializeField] private int _baseDamage = 5;
 
     [Header("Interaction")]
     [SerializeField] private float _raycastDistance;
@@ -37,8 +38,16 @@ public class FirstPersonController : MonoBehaviour, IDamagable
 
     [Header("Equip System & Oxygen")]
     [SerializeField] private Transform _handHolder; 
-    [SerializeField] private InventoryItemData _oxygenTankData; 
-    private GameObject _equippedItemModel;
+    [SerializeField] private InventoryItemData _oxygenTankData;
+
+    [Header("Modelos de Brazo")]
+    [SerializeField] private GameObject _emptyHandModel;
+    [SerializeField] private GameObject _pickaxeModel;
+    [SerializeField] private GameObject _axeModel;
+    [SerializeField] private GameObject _spearModel;
+
+    private PlayerInventoryHolder _playerInventory;
+    private int _currentHotbarIndex = 0;
 
     private Vector3 _currentMovement;
     private float _verticalRotation;
@@ -46,9 +55,17 @@ public class FirstPersonController : MonoBehaviour, IDamagable
     void Start()
     {
         _interactor = GetComponent<Interactor>();
+        _playerInventory = GetComponent<PlayerInventoryHolder>();
+
+        _playerHealth = _maxPlayerHealth;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        if (_playerInventory != null && _playerInventory.PrimaryInventorySystem != null)
+        {
+            _playerInventory.PrimaryInventorySystem.OnInventorySlotChanged += CheckIfHandNeedsUpdate;
+        }
     }
 
     void Update()
@@ -71,14 +88,21 @@ public class FirstPersonController : MonoBehaviour, IDamagable
 
                 if (interactable != null && _interactor != null)
                 {
-                    interactable.Interact(_interactor, out bool success);
+                    interactable.Interact(_interactor, out bool interactSuccessful);
                 }
             }
         }
+        if (_pInputHandler.eatTriggered)
+        {
+            _pInputHandler.eatTriggered = false;
+            TryConsumeHotbarItem();
+        }
     }
+    
     private void OnEnable()
     {
         HotbarDisplay.OnHotbarSlotChanged += EquipItem;
+        HotbarDisplay.OnHotbarIndexChanged += OnHotbarIndexUpdated;
         if (_cooldawnManager != null)
             _cooldawnManager.OnActionFired += PlayerAttack;
     }
@@ -86,30 +110,60 @@ public class FirstPersonController : MonoBehaviour, IDamagable
     private void OnDisable()
     {
         HotbarDisplay.OnHotbarSlotChanged -= EquipItem;
+        HotbarDisplay.OnHotbarIndexChanged -= OnHotbarIndexUpdated;
         if (_cooldawnManager != null)
             _cooldawnManager.OnActionFired -= PlayerAttack;
+    }
+    private void OnDestroy()
+    {
+        if (_playerInventory != null && _playerInventory.PrimaryInventorySystem != null)
+        {
+            _playerInventory.PrimaryInventorySystem.OnInventorySlotChanged -= CheckIfHandNeedsUpdate;
+        }
+    }
+
+    private void OnHotbarIndexUpdated(int index)
+    {
+        _currentHotbarIndex = index;
     }
 
     private void PlayerAttack()
     {
-        if (!_pInputHandler.isBuildMode)
+        if (_pInputHandler.isBuildMode) return;
+
+        OnPlayerAttackEvent?.Invoke(this.transform);
+
+        Vector3 origin = _mainCamera.transform.position;
+        Vector3 direction = _mainCamera.transform.forward;
+
+        if (Physics.Raycast(origin, direction, out hitInfo, _raycastDistance))
         {
-            Debug.Log("El jugador ha atacado");
-            OnPlayerAttackEvent?.Invoke(this.transform);
-
-            Vector3 origin = _mainCamera.transform.position;
-            Vector3 direction = _mainCamera.transform.forward;
-
-            if (Physics.Raycast(origin, direction, out hitInfo, _raycastDistance))
-            {
-                IDamagable item = hitInfo.collider.GetComponent<IDamagable>();
-
-                if (item != null)
-                {
-                    item.DamageRecived(1);
-                }
-            }
+            IDamagable target = hitInfo.collider.GetComponent<IDamagable>();
+            if (target == null) return;
+            
+            int damage = CalculateDamage(hitInfo.collider.gameObject);
+            target.DamageRecived(damage);
         }
+    }
+
+    private int CalculateDamage(GameObject targetObject)
+    {
+        InventorySlot currentSlot = _playerInventory?.GetSlotFromHotbar(_currentHotbarIndex);
+        InventoryItemData currentItem = currentSlot?.ItemData;
+
+        if (currentItem == null || currentItem.weaponData == null)
+            return _baseDamage;
+
+        ITargetable targetable = targetObject.GetComponent<ITargetable>();
+        if (targetable == null) 
+            return _baseDamage;
+
+        TargetType targetType = targetable.TargetType;
+
+        if (targetType == TargetType.Indestructible) return 0;
+
+        bool isEffective = System.Array.IndexOf(currentItem.weaponData.effectiveWith, targetType) >= 0;
+        return isEffective ? currentItem.weaponData.damage : currentItem.weaponData.damage / 2;
     }
 
     private Vector3 CalculateWorldDircetion()
@@ -170,6 +224,26 @@ public class FirstPersonController : MonoBehaviour, IDamagable
         Debug.DrawRay(origin, direction * _raycastDistance, Color.red);
     }
 
+    private void TryConsumeHotbarItem()
+    {
+        if (_playerInventory == null) return;
+
+        InventorySlot slot = _playerInventory.GetSlotFromHotbar(_currentHotbarIndex);
+        if (slot == null || slot.ItemData == null) return;
+
+        if (!slot.ItemData.isConsumable) return;
+        
+        if (_playerHealth >= _maxPlayerHealth) return;
+
+        HealPlayer(slot.ItemData.healAmount);
+        slot.RemoveFromStack(1);
+        
+        if (slot.StackSize <= 0) 
+            slot.ClearSlot();
+
+        _playerInventory.PrimaryInventorySystem.OnInventorySlotChanged?.Invoke(slot);
+    }
+
     public void DamageRecived(int damage)
     {
         _playerHealth -= damage;
@@ -205,20 +279,41 @@ public class FirstPersonController : MonoBehaviour, IDamagable
 
     private void EquipItem(InventoryItemData item)
     {
-        if (_equippedItemModel != null) Destroy(_equippedItemModel);
+        if (_emptyHandModel) _emptyHandModel.SetActive(false);
+        if (_pickaxeModel) _pickaxeModel.SetActive(false);
+        if (_axeModel) _axeModel.SetActive(false);
+        if (_spearModel) _spearModel.SetActive(false);
 
-        if (item != null && item.itemPrefab != null && _handHolder != null)
+        if (item == null)
         {
-            _equippedItemModel = Instantiate(item.itemPrefab, _handHolder);
+            if (_emptyHandModel) _emptyHandModel.SetActive(true);
+            return;
+        }
 
-            _equippedItemModel.transform.localScale = item.itemPrefab.transform.localScale;
-            _equippedItemModel.transform.localRotation = Quaternion.identity;
-            _equippedItemModel.transform.localScale = Vector3.one;
+        switch (item.toolType)
+        {
+            case ToolType.Pickaxe:
+                if (_pickaxeModel) _pickaxeModel.SetActive(true);
+                break;
+            case ToolType.Axe:
+                if (_axeModel) _axeModel.SetActive(true);
+                break;
+            case ToolType.Spear:
+                if (_spearModel) _spearModel.SetActive(true);
+                break;
+            default:
+                if (_emptyHandModel) _emptyHandModel.SetActive(true);
+                break;
+        }
+    }
 
-            _equippedItemModel.layer = _handHolder.gameObject.layer;
+    private void CheckIfHandNeedsUpdate(InventorySlot changedSlot)
+    {
+        InventorySlot currentHandSlot = _playerInventory.GetSlotFromHotbar(_currentHotbarIndex);
 
-            if (_equippedItemModel.TryGetComponent(out Rigidbody rb)) rb.isKinematic = true;
-            if (_equippedItemModel.TryGetComponent(out Collider col)) col.enabled = false;
+        if (changedSlot == currentHandSlot)
+        {
+            EquipItem(currentHandSlot.ItemData);
         }
     }
 }
