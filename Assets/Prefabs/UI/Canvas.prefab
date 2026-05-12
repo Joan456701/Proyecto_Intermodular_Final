@@ -277,7 +277,6 @@ GameObject:
   - component: {fileID: 4001079629965715333}
   - component: {fileID: 9138498810756701961}
   - component: {fileID: 2448516357107724114}
-  - component: {fileID: 134768164543303179}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -368,39 +367,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &134768164543303179
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1278758532273112730}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a3938f2b1bf4ee7a95e7094fc1885aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SceneInventoryController
-  _playerInputHandler: {fileID: 0}
-  _firstPersonController: {fileID: 0}
-  _firstPersonBuilder: {fileID: 0}
-  _playerCamera: {fileID: 0}
-  _canvasPrefab: {fileID: 0}
-  _inventorySize: 20
-  _hotbarSize: 5
-  _uiFont: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-  _inventoryPanelColor: {r: 0.05, g: 0.08, b: 0.11, a: 0.94}
-  _sectionPanelColor: {r: 0.09, g: 0.13, b: 0.17, a: 0.95}
-  _hotbarPanelColor: {r: 0.04, g: 0.06, b: 0.08, a: 0.82}
-  _slotColor: {r: 0.14, g: 0.18, b: 0.22, a: 0.95}
-  _selectedSlotColor: {r: 0.23, g: 0.47, b: 0.58, a: 1}
-  _titleTextColor: {r: 1, g: 1, b: 1, a: 1}
-  _hintTextColor: {r: 0.74, g: 0.82, b: 0.88, a: 1}
-  _detailAmountColor: {r: 0.39, g: 0.85, b: 1, a: 1}
-  _bodyTextColor: {r: 0.84, g: 0.88, b: 0.92, a: 1}
-  _shortcutTextColor: {r: 0.75, g: 0.86, b: 0.96, a: 1}
-  _pickupPromptColor: {r: 1, g: 0, b: 0, a: 1}
-  _craftReadyButtonColor: {r: 0.18, g: 0.62, b: 0.31, a: 1}
-  _craftDisabledButtonColor: {r: 0.28, g: 0.31, b: 0.35, a: 1}
 --- !u!1 &1817229480482441178
 GameObject:
   m_ObjectHideFlags: 0
@@ -1211,6 +1177,18 @@ PrefabInstance:
     - target: {fileID: 1450333507437062794, guid: c4cf2e8205925b249ae540fe4827dde6, type: 3}
       propertyPath: m_Name
       value: InventoryUIController
+      objectReference: {fileID: 0}
+    - target: {fileID: 2434702140083402195, guid: c4cf2e8205925b249ae540fe4827dde6, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 390
+      objectReference: {fileID: 0}
+    - target: {fileID: 2434702140083402195, guid: c4cf2e8205925b249ae540fe4827dde6, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 390
+      objectReference: {fileID: 0}
+    - target: {fileID: 3211704056937172990, guid: c4cf2e8205925b249ae540fe4827dde6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3616457862087398446, guid: c4cf2e8205925b249ae540fe4827dde6, type: 3}
       propertyPath: m_SizeDelta.x

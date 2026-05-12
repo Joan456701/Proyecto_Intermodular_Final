@@ -26,9 +26,12 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
     private int _health;
 
     [Header("Inteligencia de Destruccion")]
-    [SerializeField] private float _maxDetourMultiplier = 1.5f;
+    [SerializeField] private float _minDetourMultiplier = 1.2f;
+    [SerializeField] private float _maxDetourMultiplierRange = 2f;
+    private float _maxDetourMultiplier;
 
-    [Header("Botín del Enemigo")]
+
+    [Header("Botin del Enemigo")]
     [SerializeField] protected LootObject[] _standardDrops;
     [SerializeField] protected LootObject[] _exclusiveDrops;
 
@@ -50,6 +53,8 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
     void Start()
     {
         SpaceshipIdentificator _spaceship = FindFirstObjectByType<SpaceshipIdentificator>();
+
+        _maxDetourMultiplier = Random.Range(_minDetourMultiplier, _maxDetourMultiplierRange);
 
         if (_spaceship != null)
         { 
