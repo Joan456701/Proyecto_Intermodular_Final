@@ -1960,6 +1960,7 @@ GameObject:
   - component: {fileID: 293665050}
   - component: {fileID: 293665052}
   - component: {fileID: 293665051}
+  - component: {fileID: 293665053}
   m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
@@ -2032,8 +2033,9 @@ MonoBehaviour:
   _pInputHandler: {fileID: 1746522192}
   _rMenuManager: {fileID: 4692853349117819136}
   _mainCamera: {fileID: 330585545}
-  _playerHealth: 100
   _maxPlayerHealth: 100
+  _playerHealth: 100
+  _hungerSystem: {fileID: 0}
   _baseDamage: 5
   _raycastDistance: 3
   _handHolder: {fileID: 2144589911}
@@ -2113,6 +2115,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc161749bbc527b4d8f185d2a8212208, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Interactor
+--- !u!114 &293665053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 293665045}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2738f57dbf5f61a4787aae1c29b8fa45, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HungerSystem
+  _maxHunger: 100
+  _graceTime: 20
+  _hungerStarvationTime: 0.5
+  _damagePerSecond: 1
 --- !u!1 &303118586
 GameObject:
   m_ObjectHideFlags: 0

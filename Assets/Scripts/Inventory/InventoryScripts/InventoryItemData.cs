@@ -24,6 +24,7 @@ public class InventoryItemData : ScriptableObject
 
     [Header("Consumible")]
     public bool isConsumable;
+    public float hungerAmount;
     public int healAmount;
 
     [Header("Herramientas")]

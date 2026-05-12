@@ -20,4 +20,6 @@ MonoBehaviour:
   itemPrefab: {fileID: 534915760220708957, guid: f811b270ff963664aaf405546bd074a5, type: 3}
   toolType: 0
   isConsumable: 1
+  hungerAmount: 20
   healAmount: 15
+  weaponData: {fileID: 0}

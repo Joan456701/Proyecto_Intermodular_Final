@@ -26,8 +26,9 @@ public class FirstPersonController : MonoBehaviour, IDamagable
     private Interactor _interactor;
 
     [Header("Health Settings")]
-    [SerializeField] private float _playerHealth;
     [SerializeField] private float _maxPlayerHealth = 100f;
+    [SerializeField] private float _playerHealth;
+    [SerializeField] private HungerSystem _hungerSystem;
 
     [Header("Daño reallizado")]
     [SerializeField] private int _baseDamage = 5;
@@ -56,6 +57,7 @@ public class FirstPersonController : MonoBehaviour, IDamagable
     {
         _interactor = GetComponent<Interactor>();
         _playerInventory = GetComponent<PlayerInventoryHolder>();
+        _hungerSystem = GetComponent<HungerSystem>();
 
         _playerHealth = _maxPlayerHealth;
 
@@ -92,8 +94,10 @@ public class FirstPersonController : MonoBehaviour, IDamagable
                 }
             }
         }
+
         if (_pInputHandler.eatTriggered)
         {
+            Debug.Log(_pInputHandler.eatTriggered);
             _pInputHandler.eatTriggered = false;
             TryConsumeHotbarItem();
         }
@@ -136,7 +140,8 @@ public class FirstPersonController : MonoBehaviour, IDamagable
         Vector3 origin = _mainCamera.transform.position;
         Vector3 direction = _mainCamera.transform.forward;
 
-        if (Physics.Raycast(origin, direction, out hitInfo, _raycastDistance))
+        if (Physics.Raycast(origin, direction, out hitInfo, _raycastDistance,
+            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
         {
             IDamagable target = hitInfo.collider.GetComponent<IDamagable>();
             if (target == null) return;
@@ -232,15 +237,20 @@ public class FirstPersonController : MonoBehaviour, IDamagable
         if (slot == null || slot.ItemData == null) return;
 
         if (!slot.ItemData.isConsumable) return;
-        
-        if (_playerHealth >= _maxPlayerHealth) return;
 
-        HealPlayer(slot.ItemData.healAmount);
+        bool canHeal = slot.ItemData.healAmount > 0 && _playerHealth < _maxPlayerHealth;
+        bool canFeed = slot.ItemData.hungerAmount > 0 && _hungerSystem != null;
+
+        if (!canHeal && !canFeed) return;
+
+        if (canHeal) HealPlayer(slot.ItemData.healAmount);
+        if (canFeed) _hungerSystem.AddHunger(slot.ItemData.hungerAmount);
+
         slot.RemoveFromStack(1);
-        
-        if (slot.StackSize <= 0) 
-            slot.ClearSlot();
 
+        if (slot.StackSize <= 0)
+            slot.ClearSlot();
+        
         _playerInventory.PrimaryInventorySystem.OnInventorySlotChanged?.Invoke(slot);
     }
 

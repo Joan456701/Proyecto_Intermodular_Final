@@ -121,7 +121,7 @@ public class FirstPersonBuilder : MonoBehaviour
             Vector3 origin = _mainCamera.transform.position;
             Vector3 direction = _mainCamera.transform.forward;
 
-            if (Physics.Raycast(origin, direction, out RaycastHit hitInfo, _raycastDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            if (Physics.Raycast(origin, direction, out RaycastHit hitInfo, _raycastDistance, Physics.DefaultRaycastLayers))
             {
                 Grid<GridObject> currentGrid = GridManager.Instance.GetGrid(hitInfo.point);
                 currentGrid.GetXZ(hitInfo.point, out int x, out int z);
@@ -130,7 +130,13 @@ public class FirstPersonBuilder : MonoBehaviour
                 if (gridObject.CanBuild())
                 {
                     Vector3 buildPosition = currentGrid.GetWorldPosition(x, z);
-                    Vector3 centerPosition = buildPosition + (_cellSizeDimension/2);
+                    Vector3 centerPosition = buildPosition + (_cellSizeDimension / 2);
+
+                    if (!GridManager.Instance.HasSupportBelow(buildPosition))
+                    {
+                        Debug.Log("No hay soporte debajo para construir aqui");
+                        return;
+                    }
 
                     if (!Physics.CheckBox(centerPosition, _cellSizeDimension / 2, Quaternion.identity, _obstacleLayer))
                     {
@@ -224,6 +230,12 @@ public class FirstPersonBuilder : MonoBehaviour
                     {
                         Vector3 targetPosition = currentGrid.GetWorldPosition(x, z);
                         Vector3 centerPosition = targetPosition + (_cellSizeDimension / 2);
+
+                        if (!GridManager.Instance.HasSupportBelow(targetPosition))
+                        {
+                            _ghostObject.gameObject.SetActive(false);
+                            return;
+                        }
 
                         if (!Physics.CheckBox(centerPosition, _cellSizeDimension / 2, Quaternion.identity, _obstacleLayer))
                         {
