@@ -72,6 +72,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: -5754084199372789682, guid: b36fbadc1f8d21f4fbfde14ab8b2d463, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -629719859055844128, guid: a2af25f9f17f3884bb8c0c19c1b4eaf9, type: 3}
     - target: {fileID: -4191116722900603853, guid: b36fbadc1f8d21f4fbfde14ab8b2d463, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0.7071068
@@ -212,6 +216,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16a75fea7e5c61f4bb1f30cafa9593a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloorPlacedObject
+  _targetType: 4
   _upFloorEdgePosition: {fileID: 3538302318059997879}
   _downFloorEdgePosition: {fileID: 432469270112245896}
   _leftFloorEdgePosition: {fileID: 6025672755344946662}

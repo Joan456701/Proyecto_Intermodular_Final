@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: f7c0cc97d23533e4a8969d9e9171d427, type: 2}
+    - target: {fileID: -5754084199372789682, guid: b36fbadc1f8d21f4fbfde14ab8b2d463, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -629719859055844128, guid: a2af25f9f17f3884bb8c0c19c1b4eaf9, type: 3}
     - target: {fileID: 919132149155446097, guid: b36fbadc1f8d21f4fbfde14ab8b2d463, type: 3}
       propertyPath: m_Name
       value: HologramFloor
