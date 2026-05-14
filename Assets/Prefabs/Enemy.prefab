@@ -127,14 +127,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a399d48052b2454f82755d2f47d428f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
-  _listeningRange: 11.5
-  _vanishDistance: 14
+  _targetType: 5
+  _listeningRange: 8.5
+  _vanishDistance: 12
   _attackDistance: 4
   _cooldown: 2
   _attackDamage: 1
   _maxTime: 5
-  _maxHealth: 2
-  _maxDetourMultiplier: 1.5
+  _maxHealth: 3
+  _minDetourMultiplier: 1.2
+  _maxDetourMultiplierRange: 3.25
+  _standardDrops: []
+  _exclusiveDrops: []
 --- !u!136 &1676009372102941149
 CapsuleCollider:
   m_ObjectHideFlags: 0

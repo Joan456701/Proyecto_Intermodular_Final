@@ -8,9 +8,16 @@ public struct ExtractableResources
     public int amount;
 }
 
-public class ExtractorController : InventoryHolder, IInteractable
+public class ExtractorController : InventoryHolder, IInteractable, IDamagable, ITargetable
 {
+    [Header("Tipo de objetivo")]
+    [SerializeField] private TargetType _targetType = TargetType.LooseObject;
+    public TargetType TargetType => _targetType;
     public UnityAction<IInteractable> OnInteractionComplete { get; set; }
+
+    [Header("Vida")]
+    [SerializeField] private int _maxHealth;
+    private int _health;
 
     [Header("Items que puede extraer (Arrastrar ScriptableObjects)")]
     [SerializeField] private InventoryItemData _stoneData;
@@ -80,4 +87,12 @@ public class ExtractorController : InventoryHolder, IInteractable
     }
 
     public void EndInteraction() { }
+
+    public void DamageRecived(int damage)
+    {
+        _health -= damage;
+
+        if (_health <= 0)
+            Destroy(gameObject);
+    }
 }

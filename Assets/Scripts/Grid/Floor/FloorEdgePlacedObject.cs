@@ -7,6 +7,8 @@ public class FloorEdgePlacedObject : MonoBehaviour, IDamagable, ITargetable
     [SerializeField] private TargetType _targetType = TargetType.WoodStructure;
     public TargetType TargetType => _targetType;
 
+    private bool _hasNextStair = false;
+    public bool HasNextStair => _hasNextStair;
 
     [Header("Vida Estructura")]
     [SerializeField] private int _maxHealth;
@@ -35,6 +37,14 @@ public class FloorEdgePlacedObject : MonoBehaviour, IDamagable, ITargetable
         {
             gameObject.SetActive(false);
 
+            if (_floorEdgeObjectTypeSO.isStairs)
+            {
+                FloorEdgePlacedObject parentStair = transform.parent?
+                    .GetComponent<FloorEdgePlacedObject>();
+                if (parentStair != null)
+                    parentStair.SetHasNextStair(false);
+            }
+
             Grid<GridObject> grid = GridManager.Instance.GetGrid(transform.position);
             grid.GetXZ(transform.position, out int x, out int z);
             grid.GetGridObject(x, z)?.SetPlacedObject(null);
@@ -49,4 +59,6 @@ public class FloorEdgePlacedObject : MonoBehaviour, IDamagable, ITargetable
         }
     }
     public FloorEdgeObjectTypeSO GetSO() => _floorEdgeObjectTypeSO;
+    public void SetHasNextStair(bool value) => _hasNextStair = value;
+
 }

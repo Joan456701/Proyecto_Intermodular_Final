@@ -35,8 +35,6 @@ public class HungerSystem : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(_currentHunger);
-
         if (Time.timeScale <= 0) return;
 
         if (_currentHunger >= _maxHunger)

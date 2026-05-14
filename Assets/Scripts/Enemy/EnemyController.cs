@@ -12,9 +12,9 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
     [SerializeField] private float _vanishDistance;
 
     [Header("Variables de ataque")]
-    [SerializeField] protected float _attackDistance = 4f;
-    [SerializeField] protected float _cooldown = 2;
-    [SerializeField] protected int _attackDamage = 1;
+    [SerializeField] private float _attackDistance = 4f;
+    [SerializeField] private float _cooldown = 2;
+    [SerializeField] private int _attackDamage = 1;
 
     private float _timeSinceLastAttack = 0;
 
@@ -22,7 +22,7 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
     [SerializeField] private float _maxTime = 5f;
 
     [Header("Vida")]
-    [SerializeField] protected int _maxHealth;
+    [SerializeField] private int _maxHealth;
     private int _health;
 
     [Header("Inteligencia de Destruccion")]
@@ -30,16 +30,15 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
     [SerializeField] private float _maxDetourMultiplierRange = 2f;
     private float _maxDetourMultiplier;
 
-
     [Header("Botin del Enemigo")]
     [SerializeField] protected LootObject[] _standardDrops;
     [SerializeField] protected LootObject[] _exclusiveDrops;
 
-    protected BoxCollider _spaceshipCollider;
-    protected Transform _spaceshipTarget;
-    protected Transform _playerTarget;
-    protected Transform _currentTarget;
-    protected NavMeshAgent _navAgent;
+    private BoxCollider _spaceshipCollider;
+    private Transform _spaceshipTarget;
+    private Transform _playerTarget;
+    private Transform _currentTarget;
+    private NavMeshAgent _navAgent;
 
     private float _timeWithoutSeeingPlayer = 0f;
     private bool isJumping = false;
@@ -50,7 +49,7 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
 
         _navAgent.stoppingDistance = _attackDistance - 0.5f;
     }
-    void Start()
+    private void Start()
     {
         SpaceshipIdentificator _spaceship = FindFirstObjectByType<SpaceshipIdentificator>();
 
@@ -71,27 +70,22 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
 
     private void OnDisable(){FirstPersonController.OnPlayerAttackEvent -= ListenThePlayer;}
 
-    protected virtual void Update()
+    private void Update()
     {
+        Debug.Log(_currentTarget);
         if (_currentTarget == null || _spaceshipTarget == null)
             return;
 
         if (_currentTarget == _playerTarget)
-        {
             HandlePlayerTarget();
-        }
         else if (_currentTarget == _spaceshipTarget)
-        {
             HandleSpaceshipTarget(); 
-        }
 
         if (_navAgent.isOnOffMeshLink && !isJumping)
-        {
             StartCoroutine(SmoothJump());
-        }
     }
 
-    protected virtual void HandlePlayerTarget()
+    private void HandlePlayerTarget()
     {
         UpdateDestination();
 
@@ -125,7 +119,7 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
         }
     }
 
-    protected virtual void ListenThePlayer(Transform pPosition)
+    private void ListenThePlayer(Transform pPosition)
     {
         float distance = Vector3.Distance(transform.position, pPosition.position);
 
@@ -136,7 +130,7 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
         }
     }
 
-    protected virtual void HandleSpaceshipTarget()
+    private void HandleSpaceshipTarget()
     {
         Vector3 targetPos = _spaceshipTarget.position;
         if (_spaceshipCollider != null)
@@ -194,7 +188,7 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
         }
     }
 
-    protected virtual void AttackThePlayer()
+    private void AttackThePlayer()
     {
         _timeWithoutSeeingPlayer = 0f;
         _timeSinceLastAttack += Time.deltaTime;
@@ -224,7 +218,7 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
         }
     }
 
-    protected virtual void TryAttackObstacle()
+    private void TryAttackObstacle()
     {
         _timeSinceLastAttack += Time.deltaTime;
 

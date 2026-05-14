@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class DayNightSpawnManager : MonoBehaviour
@@ -24,15 +25,21 @@ public class DayNightSpawnManager : MonoBehaviour
     [SerializeField] private float _dayDuration;
     [SerializeField] private float _nightDuration;
 
-    [Header("Numero de rondas")]
+    [Header("Rondas")]
+    [SerializeField] private int _nightsToIncreaseSpeed = 3;
+    [SerializeField] private NightRoundDataSO[] _nightRounds;
+    [SerializeField] private NightRoundDataSO _defaultRound;
     [SerializeField] private int _maxNightsSurvive;
-    
+
+    private NightRoundDataSO _currentRound;
+
     private DayCycleState _currentState;
     private int _nightsCount = -1;
     private float _timer;
 
     [Header("Variables de spawn y enemigos")]
     [SerializeField] private GameObject _enemyPrefab;
+    [SerializeField] private GameObject _tankPrefab;
     private List<GameObject> _enemyInScene = new List<GameObject>();
     private List<Transform> _spawnPoints = new List<Transform>();
 
@@ -45,22 +52,17 @@ public class DayNightSpawnManager : MonoBehaviour
     private bool _isExtraWaveActive = false; 
     private float _currentExtraWaveTimer = 0;
 
-    [Header("Dificultad de spawneo")]
-    [SerializeField] private int _baseMaxEnemies = 5;
-    [SerializeField] private int _extraEnemiesNight = 2;
-    [SerializeField] private float _baseSpawnRate = 6f;
-    [SerializeField] private float _spawnRateDecrease = 0.5f;
-    [SerializeField] private float _minSpawnRate = 1.5f;
-    [SerializeField] private int _nightsToIncreaseSpeed = 3;
-
     private float _spawnTimer = 0;
     private void Start()
     {
-        SpawnIdentificator[] identificators = FindObjectsByType<SpawnIdentificator>(FindObjectsSortMode.None);
-
-        foreach (SpawnIdentificator identificator in identificators)
-            _spawnPoints.Add(identificator.transform);
-
+        if (_nightRounds != null && _nightRounds.Length > 0)
+        {
+            _currentRound = _nightRounds[0];
+        }
+        else
+        {
+            _currentRound = _defaultRound;
+        }
         StartDay();
     }
 
@@ -95,11 +97,11 @@ public class DayNightSpawnManager : MonoBehaviour
         _isExtraWaveActive = false;
         _currentState = DayCycleState.Day;
         _timer = _dayDuration;
+        _spawnTimer = 0;
 
         _currentWeather = _normalWeather;
 
         CleanRemainingEnemies();
-        Debug.Log("Esta saliendo el soool");
     }
 
     private void StartNight()
@@ -108,7 +110,12 @@ public class DayNightSpawnManager : MonoBehaviour
         _currentState = DayCycleState.Night;
         _timer = _nightDuration;
         _nightsCount++;
-        
+        _spawnTimer = 0;
+
+        _currentRound = GetCurrentRound();
+        LoadSpawnPointsForRound(_currentRound);
+
+
         if ((_nightsCount + 1) % _nightsToIncreaseSpeed == 0)
         {
             _currentWeather = _bloodMoonWeather;
@@ -118,6 +125,31 @@ public class DayNightSpawnManager : MonoBehaviour
         {
             _currentWeather = _normalWeather;
             Debug.Log("A mimir");
+        }
+    }
+
+    private NightRoundDataSO GetCurrentRound()
+    {
+        if (_nightRounds != null && _nightsCount < _nightRounds.Length)
+            return _nightRounds[_nightsCount];
+        return _defaultRound;
+    }
+
+    private void LoadSpawnPointsForRound(NightRoundDataSO round)
+    {
+        _spawnPoints.Clear();
+
+        SpawnGroup[] allGroups = FindObjectsByType<SpawnGroup>(FindObjectsSortMode.None);
+
+        foreach (SpawnGroup group in allGroups)
+        {
+            bool groupIsActive = round.activeSpawnsID.Contains(group.GroupID);
+
+            if (groupIsActive)
+            {
+                foreach (Transform point in group.SpawnPoints)
+                    _spawnPoints.Add(point);
+            }
         }
     }
 
@@ -132,17 +164,12 @@ public class DayNightSpawnManager : MonoBehaviour
         else
             HandleExploratioRisk();
     }
+
     private void RunStandardHordeLogic()
     {
         _spawnTimer += Time.deltaTime;
 
-        int maxEnemiesThisNight = _baseMaxEnemies + (_extraEnemiesNight * _nightsCount);
-        int difficultyTier = (_nightsCount + 1) / _nightsToIncreaseSpeed;
-
-        float currentSpawnRate = _baseSpawnRate - (_spawnRateDecrease * difficultyTier);
-        currentSpawnRate = Mathf.Max(currentSpawnRate, _minSpawnRate);
-
-        if (_spawnTimer >= currentSpawnRate && _enemyInScene.Count < maxEnemiesThisNight)
+        if (_spawnTimer >= _currentRound.spawnRate && _enemyInScene.Count < _currentRound.maxEnemies)
         {
             _spawnTimer = 0;
             SpawnEnemy();
@@ -181,13 +208,17 @@ public class DayNightSpawnManager : MonoBehaviour
 
     private void SpawnEnemy()
     {
-        if (_spawnPoints.Count == 0) 
-            return;
+        if (_spawnPoints.Count == 0) return;
 
         int randomIndex = Random.Range(0, _spawnPoints.Count);
         Transform selectedPoint = _spawnPoints[randomIndex];
 
-        GameObject newEnemy = Instantiate(_enemyPrefab, selectedPoint.position, selectedPoint.rotation);
+        bool spawnTank = _tankPrefab != null &&
+                TankController.ActiveTanksCount < _currentRound.maxTanks &&
+                Random.Range(0, 100) < _currentRound.tankSpawnChance;
+
+        GameObject prefabToSpawn = spawnTank ? _tankPrefab : _enemyPrefab;
+        GameObject newEnemy = Instantiate(prefabToSpawn, selectedPoint.position, selectedPoint.rotation);
 
         _enemyInScene.Add(newEnemy);
     }

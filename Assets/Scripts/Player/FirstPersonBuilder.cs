@@ -59,15 +59,31 @@ public class FirstPersonBuilder : MonoBehaviour
     private void TryBuild()
     {
         if (_wallMode)
-        { 
+        {
             FloorEdgePosition pointedEdge = GetMouseFloorEdgePosition();
 
             if (pointedEdge != null && pointedEdge.transform.parent != null)
             {
-                FloorPlacedObject fatherFloor = pointedEdge.GetComponentInParent<FloorPlacedObject>();
+                FloorPlacedObject fatherFloor = pointedEdge.transform.parent
+                    .GetComponent<FloorPlacedObject>();
+                FloorEdgePlacedObject fatherStair = pointedEdge.transform.parent
+                    .GetComponent<FloorEdgePlacedObject>();
 
-                if (fatherFloor != null && _currentWallBuilding != null)
-                {   
+                if ((fatherFloor != null || fatherStair != null) && _currentWallBuilding != null)
+                {
+                    if (fatherStair != null)
+                    {
+                        if (_stairsMode && !fatherStair.HasNextStair &&
+                            CheckAndConsumeRequirements(_currentWallBuilding.requirements))
+                        {
+                            Transform newStair = Instantiate(_currentWallBuilding.prefab,
+                                pointedEdge.transform.position,
+                                pointedEdge.transform.rotation,
+                                fatherStair.transform);
+                            fatherStair.SetHasNextStair(true);
+                        }
+                        return;
+                    }
                     FloorPlacedObject.Edge currentEdge = pointedEdge.edge;
                     FloorPlacedObject.Edge oppositeEdge = GetOppositeEdge(currentEdge);
 
@@ -169,17 +185,30 @@ public class FirstPersonBuilder : MonoBehaviour
 
             if (pointedEdge != null)
             {
-                FloorPlacedObject fatherWall = pointedEdge.GetComponentInParent<FloorPlacedObject>();
-                if (fatherWall != null && !fatherWall.HasEdgeObject(pointedEdge.edge))
-                {    
+                FloorPlacedObject fatherWall = pointedEdge.transform.parent
+                    .GetComponent<FloorPlacedObject>();
+                FloorEdgePlacedObject fatherStair = pointedEdge.transform.parent
+                    .GetComponent<FloorEdgePlacedObject>();
+
+                if (fatherStair != null)
+                {
+                    if (_stairsMode && !fatherStair.HasNextStair)
+                    {
+                        _ghostObject.gameObject.SetActive(true);
+                        _ghostObject.position = pointedEdge.transform.position;
+                        _ghostObject.rotation = pointedEdge.transform.rotation;
+                    }
+                    else
+                        _ghostObject.gameObject.SetActive(false);
+                }
+                else if (fatherWall != null && !fatherWall.HasEdgeObject(pointedEdge.edge))
+                {
                     _ghostObject.gameObject.SetActive(true);
                     _ghostObject.position = pointedEdge.transform.position;
                     _ghostObject.rotation = pointedEdge.transform.rotation;
                 }
                 else
-                {
                     _ghostObject.gameObject.SetActive(false);
-                }
             }
             else
                 _ghostObject.gameObject.SetActive(false);
