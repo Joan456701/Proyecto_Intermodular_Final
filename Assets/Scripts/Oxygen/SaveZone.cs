@@ -11,6 +11,7 @@ public class SaveZone : MonoBehaviour
 
     [Header("Ajustes del shader")]
     [SerializeField] private Renderer _domeRenderer;
+    [SerializeField] private Transform _otherModelTransform;
     [SerializeField] private float _dissolveSpeed = 0.1f;
     [SerializeField] private float _dissolveThreshold = 0.7f;
 
@@ -69,12 +70,25 @@ public class SaveZone : MonoBehaviour
             }
         }
 
-        if (_linkedStation != null && _domeMaterial != null)
+        if (_linkedStation != null)
         {
             float targetDissolve = _linkedStation.IsShieldActive ? 0f : 1f;
 
             _dissolveAmount = Mathf.MoveTowards(_dissolveAmount, targetDissolve, _dissolveSpeed * Time.deltaTime);
-            _domeMaterial.SetFloat("_Dissolve_Amount", _dissolveAmount);
+
+            if (_domeMaterial != null)
+            {
+                _domeMaterial.SetFloat("_Dissolve_Amount", _dissolveAmount);
+            }
+
+            if (_otherModelTransform != null)
+            {
+                Vector3 currentScale = _otherModelTransform.localScale;
+
+                currentScale.y = 1f - _dissolveAmount;
+
+                _otherModelTransform.localScale = currentScale;
+            }
 
             if (_domeRenderer != null)
             {
