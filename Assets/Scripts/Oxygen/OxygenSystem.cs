@@ -1,7 +1,12 @@
+using System;
 using UnityEngine;
 
 public class OxygenSystem : MonoBehaviour
 {
+    public static event Action<float, float> OnOxygenChanged;
+    public static event Action<bool> OnTankEquippedChanged;
+    public static event Action<bool> OnOxygenRecharging;
+
     [Header("Oxygen Settings")]
     [SerializeField] private float _maxOxygenTime = 60f;
     [SerializeField] private float _currentOxygenTime;
@@ -12,11 +17,6 @@ public class OxygenSystem : MonoBehaviour
     [SerializeField] private float _damagePerSecond = 5f;
     [SerializeField] private bool _isTakingOxygenDamage;
     [SerializeField] private float _oxygenDamageTimer;
-
-    [Header("UI References")]
-    [SerializeField] private UnityEngine.UI.Slider _oxygenSlider;
-    [SerializeField] private UnityEngine.UI.Image _oxygenFillImage;
-    [SerializeField] private UnityEngine.UI.Text _oxygenTimerText;
 
     [Header("Death Settings")]
     [SerializeField] private FirstPersonController _firstPersonController;
@@ -55,8 +55,7 @@ public class OxygenSystem : MonoBehaviour
         }
 
         _playerInventory = FindFirstObjectByType<PlayerInventoryHolder>();
-
-        UpdateOxygenUI();
+        OnTankEquippedChanged?.Invoke(_hasOxygenTank);
     }
 
     private void Update()
@@ -76,6 +75,7 @@ public class OxygenSystem : MonoBehaviour
         if (_hasOxygenTank && _currentOxygenTime > 0)
         {
             _currentOxygenTime -= Time.deltaTime;
+            OnOxygenChanged?.Invoke(_currentOxygenTime, _maxOxygenTime);
             _isTakingOxygenDamage = false;
             _oxygenDamageTimer = 0f;
 
@@ -83,21 +83,9 @@ public class OxygenSystem : MonoBehaviour
             {
                 _currentOxygenTime = 0;
             }
-
-            UpdateOxygenUI();
         }
         else
         {
-            if (!_hasOxygenTank)
-            {
-                if (_oxygenSlider != null) _oxygenSlider.gameObject.SetActive(false);
-                if (_oxygenTimerText != null) _oxygenTimerText.gameObject.SetActive(false);
-            }
-            else
-            {
-                UpdateOxygenUI(); 
-            }
-
             _isTakingOxygenDamage = true;
             _oxygenDamageTimer += Time.deltaTime;
 
@@ -116,12 +104,12 @@ public class OxygenSystem : MonoBehaviour
         bool inPrimary = _playerInventory.PrimaryInventorySystem.ContainsItem(_oxygenTankData, out _);
         bool inSecondary = _playerInventory.SecondaryInventorySystem.ContainsItem(_oxygenTankData, out _);
 
-        _hasOxygenTank = inPrimary || inSecondary;
+        bool hasTank = inPrimary || inSecondary;
 
-        if (_hasOxygenTank)
+        if (hasTank != _hasOxygenTank)
         {
-            if (_oxygenSlider != null && !_oxygenSlider.gameObject.activeSelf) _oxygenSlider.gameObject.SetActive(true);
-            if (_oxygenTimerText != null && !_oxygenTimerText.gameObject.activeSelf) _oxygenTimerText.gameObject.SetActive(true);
+            _hasOxygenTank = hasTank;
+            OnTankEquippedChanged?.Invoke(_hasOxygenTank);
         }
     }
 
@@ -148,7 +136,7 @@ public class OxygenSystem : MonoBehaviour
         if (_hasOxygenTank && !_isPaused)
         {
             _currentOxygenTime = Mathf.Max(0, _currentOxygenTime - amount);
-            UpdateOxygenUI();
+            OnOxygenChanged?.Invoke(_currentOxygenTime, _maxOxygenTime);
         }
     }
 
@@ -156,7 +144,6 @@ public class OxygenSystem : MonoBehaviour
     {
         _currentOxygenTime = _maxOxygenTime;
         _hasOxygenTank = true;
-        UpdateOxygenUI();
     }
 
     public void AddOxygen(float amount)
@@ -169,34 +156,11 @@ public class OxygenSystem : MonoBehaviour
         }
 
         _hasOxygenTank = true;
-        UpdateOxygenUI();
+        OnOxygenChanged?.Invoke(_currentOxygenTime, _maxOxygenTime);
     }
 
     public void RemoveOxygenTank() { }
     public void GiveOxygenTank() { }
-
-    private void UpdateOxygenUI()
-    {
-        if (_oxygenSlider != null)
-        {
-            _oxygenSlider.maxValue = _maxOxygenTime;
-            _oxygenSlider.value = _currentOxygenTime;
-        }
-
-        if (_oxygenFillImage != null && _hasOxygenTank)
-        {
-            float oxygenPercent = _currentOxygenTime / _maxOxygenTime;
-            _oxygenFillImage.color = oxygenPercent > 0.25f ? Color.cyan : Color.red;
-        }
-
-        if (_oxygenTimerText != null)
-        {
-            int minutes = Mathf.FloorToInt(_currentOxygenTime / 60f);
-            int seconds = Mathf.FloorToInt(_currentOxygenTime % 60f);
-            _oxygenTimerText.text = string.Format("{0:0}:{1:00}", minutes, seconds);
-            _oxygenTimerText.gameObject.SetActive(_hasOxygenTank);
-        }
-    }
 
     private void OnDestroy()
     {
@@ -204,5 +168,10 @@ public class OxygenSystem : MonoBehaviour
         {
             _instance = null;
         }
+    }
+
+    public static void InvokeOxygenRecharging(bool isRecharging)
+    {
+        OnOxygenRecharging?.Invoke(isRecharging);
     }
 }

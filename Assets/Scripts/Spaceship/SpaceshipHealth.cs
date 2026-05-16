@@ -1,7 +1,10 @@
+using System;
 using UnityEngine;
 
 public class SpaceshipHealth : MonoBehaviour, IDamagable, ITargetable
 {
+    public static event Action<int, int> OnSpaceshipHealthChanged;
+
     [Header("Variables de la vida")]
     [SerializeField] private int _maxHealth;
     [SerializeField] GameObject _spaceship;
@@ -12,17 +15,14 @@ public class SpaceshipHealth : MonoBehaviour, IDamagable, ITargetable
 
     void Start()
     {
-        _currentHealth = _maxHealth;    
-    }
-
-    void Update()
-    {
-        //Debug.Log(_currentHealth);
+        _currentHealth = _maxHealth;
+        OnSpaceshipHealthChanged?.Invoke(_currentHealth, _maxHealth);
     }
 
     public void DamageRecived(int damage)
     {
         _currentHealth -= damage;
+        OnSpaceshipHealthChanged?.Invoke(_currentHealth, _maxHealth);
 
         if (_currentHealth <= 0)
         {
@@ -30,6 +30,4 @@ public class SpaceshipHealth : MonoBehaviour, IDamagable, ITargetable
             Destroy(_spaceship);
         }
     }
-
-    
 }

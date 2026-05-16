@@ -16,6 +16,11 @@ MonoBehaviour:
   displayName: Balas de piedra
   description: "Trozos de piedra triturados, con ese tama\xF1o podr\xEDan servir
     de munici\xF3n para torreta"
-  icon: {fileID: 0}
+  icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
   maxStackSize: 50
   itemPrefab: {fileID: 0}
+  toolType: 0
+  isConsumable: 0
+  hungerAmount: 0
+  healAmount: 0
+  weaponData: {fileID: 0}

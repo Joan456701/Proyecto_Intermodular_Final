@@ -4,6 +4,7 @@ using System;
 public class FirstPersonController : MonoBehaviour, IDamagable
 {
     public static event Action<Transform> OnPlayerAttackEvent;
+    public static event Action<float, float> OnHealthChanged;
 
     [Header("Movment Speeds")]
     [SerializeField] private float _walkSpeed = 5f;
@@ -257,6 +258,8 @@ public class FirstPersonController : MonoBehaviour, IDamagable
     public void DamageRecived(int damage)
     {
         _playerHealth -= damage;
+        OnHealthChanged?.Invoke(_playerHealth, _maxPlayerHealth);
+
         Debug.Log("Daño recibido: -" + damage + " de vida. Vida actual: " + Mathf.RoundToInt(_playerHealth) + "/" + _maxPlayerHealth);
 
         if (_playerHealth <= 0)
@@ -275,6 +278,7 @@ public class FirstPersonController : MonoBehaviour, IDamagable
         }
 
         _playerHealth = Mathf.Min(_playerHealth + amount, _maxPlayerHealth);
+        OnHealthChanged?.Invoke(_playerHealth, _maxPlayerHealth);
     }
 
     public float GetHealth()

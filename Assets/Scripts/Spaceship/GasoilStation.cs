@@ -1,9 +1,11 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
 [DisallowMultipleComponent]
 public class GasoilStation : InventoryHolder, IInteractable
 {
+    public static event Action<float, float> OnShieldEnergyChanged;
     public UnityAction<IInteractable> OnInteractionComplete { get; set; }
 
     [System.Serializable]
@@ -29,12 +31,14 @@ public class GasoilStation : InventoryHolder, IInteractable
     private void Start()
     {
         _currentShieldEnergy = _maxShieldEnergy;
+        OnShieldEnergyChanged?.Invoke(_currentShieldEnergy, _maxShieldEnergy);
     }
     private void Update()
     {
         if (_currentShieldEnergy > 0)
         {
             _currentShieldEnergy -= Time.deltaTime;
+            OnShieldEnergyChanged?.Invoke(_currentShieldEnergy, _maxShieldEnergy);
         }
         else
         {
@@ -65,6 +69,7 @@ public class GasoilStation : InventoryHolder, IInteractable
                     PrimaryInventorySystem.OnInventorySlotChanged?.Invoke(slot);
 
                     _currentShieldEnergy = Mathf.Min(_currentShieldEnergy + matchedFuel.energyAmount, _maxShieldEnergy);
+                    OnShieldEnergyChanged?.Invoke(_currentShieldEnergy, _maxShieldEnergy);
 
                     return;
                 }

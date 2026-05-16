@@ -9,6 +9,14 @@ public class SaveZone : MonoBehaviour
     [SerializeField] private float _sizeIncreasePerLevel = 0.5f;
     [SerializeField] private GasoilStation _linkedStation;
 
+    [Header("Ajustes del shader")]
+    [SerializeField] private Renderer _domeRenderer;
+    [SerializeField] private float _dissolveSpeed = 0.1f;
+    [SerializeField] private float _dissolveThreshold = 0.7f;
+
+    private Material _domeMaterial;
+    private float _dissolveAmount = 0f;
+
     private int _currentBaseLevel = 1;
     private bool _baseColliderSizeCached;
     private Vector3 _baseVisualScale;
@@ -38,6 +46,11 @@ public class SaveZone : MonoBehaviour
             _zoneCollider.isTrigger = true;
         }
 
+        if (_domeRenderer != null)
+        {
+            _domeMaterial = _domeRenderer.material;
+        }
+
         CacheBaseColliderSize();
         ApplyBaseLevel(_currentBaseLevel);
     }
@@ -52,15 +65,27 @@ public class SaveZone : MonoBehaviour
             {
                 OxygenSystem.Instance.SetPaused(currentShieldState);
 
-                if (!currentShieldState)
+                _lastShieldState = currentShieldState;
+            }
+        }
+
+        if (_linkedStation != null && _domeMaterial != null)
+        {
+            float targetDissolve = _linkedStation.IsShieldActive ? 0f : 1f;
+
+            _dissolveAmount = Mathf.MoveTowards(_dissolveAmount, targetDissolve, _dissolveSpeed * Time.deltaTime);
+            _domeMaterial.SetFloat("_Dissolve_Amount", _dissolveAmount);
+
+            if (_domeRenderer != null)
+            {
+                if (_dissolveAmount >= _dissolveThreshold)
                 {
-                    Debug.LogWarning("¡LA ESTACIÓN SE HA QUEDADO SIN ENERGÍA! Escudo desactivado.");
+                    if (_domeRenderer.enabled) _domeRenderer.enabled = false;
                 }
                 else
                 {
-                    Debug.Log("¡La estación vuelve a tener energía! Escudo reactivado.");
+                    if (!_domeRenderer.enabled) _domeRenderer.enabled = true;
                 }
-                _lastShieldState = currentShieldState;
             }
         }
     }
@@ -111,11 +136,6 @@ public class SaveZone : MonoBehaviour
             capsuleCollider.radius = _baseCapsuleRadius * colliderMultiplier;
             capsuleCollider.height = _baseCapsuleHeight * colliderMultiplier;
         }
-
-        if (_showDebugInfo)
-        {
-            Debug.Log("SaveZone actualizada a nivel " + _currentBaseLevel + ". Multiplicador: " + sizeMultiplier);
-        }
     }
 
     private void CacheBaseColliderSize()
@@ -159,15 +179,6 @@ public class SaveZone : MonoBehaviour
             {
                 _lastShieldState = _linkedStation != null && _linkedStation.IsShieldActive;
                 OxygenSystem.Instance.SetPaused(_lastShieldState);
-
-                //if (_lastShieldState)
-                //{
-                //    Debug.Log("--- ENTRADA A SAVEZONE --- Escudo activo, oxigeno pausado");
-                //}
-                //else
-                //{
-                //    Debug.LogWarning("--- ENTRADA A SAVEZONE --- Entrando sin energía, escudo apagado");
-                //}
             }
         }
     }

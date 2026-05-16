@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -31,6 +32,7 @@ public class OxygenRecharger : InventoryHolder, IInteractable
             if (OxygenSystem.Instance != null && OxygenSystem.Instance.CurrentOxygenTime < OxygenSystem.Instance.MaxOxygenTime)
             { 
                 OxygenSystem.Instance.AddOxygen(_rechargeRate * Time.deltaTime);
+                OxygenSystem.InvokeOxygenRecharging(true);
 
                 if (_indicatorLight != null)
                 { 
@@ -40,6 +42,8 @@ public class OxygenRecharger : InventoryHolder, IInteractable
             }
             else if (OxygenSystem.Instance != null && OxygenSystem.Instance.CurrentOxygenTime >= OxygenSystem.Instance.MaxOxygenTime)
             {
+                OxygenSystem.InvokeOxygenRecharging(false);
+
                 if (_indicatorLight != null)
                 { 
                     _indicatorLight.material.color = _readyColor;
@@ -48,7 +52,9 @@ public class OxygenRecharger : InventoryHolder, IInteractable
             }
         }
         else
-        {    
+        {
+            OxygenSystem.InvokeOxygenRecharging(false);
+
             if (_indicatorLight != null)
             { 
                 _indicatorLight.material.color = _notReadyColor;

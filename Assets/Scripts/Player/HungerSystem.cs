@@ -1,7 +1,10 @@
+using System;
 using UnityEngine;
 
 public class HungerSystem : MonoBehaviour
 {
+    public static event Action<float, float> OnHungerChanged;
+
     [Header("Ajustes de hambre")]
     [SerializeField] private float _maxHunger = 100;
     private float _currentHunger;
@@ -50,6 +53,7 @@ public class HungerSystem : MonoBehaviour
         {
             _currentHunger -= _hungerStarvationTime * Time.deltaTime;
             _currentHunger = Mathf.Max(_currentHunger, 0);
+            OnHungerChanged?.Invoke(_currentHunger, _maxHunger);
         }
 
         if (_currentHunger <= 0)
@@ -80,6 +84,7 @@ public class HungerSystem : MonoBehaviour
     public void AddHunger(float amount)
     {
         _currentHunger = Mathf.Min(_currentHunger + amount, _maxHunger);
+        OnHungerChanged?.Invoke(_currentHunger, _maxHunger);
 
         if (_currentHunger >= _maxHunger)
             _graceTimer = _graceTime;
