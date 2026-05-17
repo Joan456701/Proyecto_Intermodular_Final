@@ -153,15 +153,22 @@ public class TankController : MonoBehaviour, IDamagable, ITargetable
     {
         _timeSinceLastAttack += Time.deltaTime;
 
+        if (_centryTarget == null)
+        {
+            _currentTarget = _spaceshipTarget;
+            UpdateDestination();
+            return;
+        }
+
+        Collider turretCollider = _centryTarget.GetComponent<Collider>();
+        Vector3 targetPos = turretCollider != null
+            ? turretCollider.ClosestPoint(transform.position)
+            : _centryTarget.position;
+
+        FaceTarget(targetPos);
+
         if (_timeSinceLastAttack >= _cooldown)
         {
-            if (_centryTarget == null)
-            {
-                _currentTarget = _spaceshipTarget;
-                UpdateDestination();
-                return;
-            }
-
             IDamagable centryDamagable = _centryTarget.GetComponent<IDamagable>();
             if (centryDamagable != null)
             {
@@ -241,12 +248,14 @@ public class TankController : MonoBehaviour, IDamagable, ITargetable
     {
         _timeSinceLastAttack += Time.deltaTime;
 
+        Vector3 targetPos = _spaceshipTarget.position;
+        if (_spaceshipCollider != null)
+            targetPos = _spaceshipCollider.ClosestPoint(transform.position);
+
+        FaceTarget(targetPos);
+
         if (_timeSinceLastAttack >= _cooldown)
         {
-            Vector3 targetPos = _spaceshipTarget.position;
-            if (_spaceshipCollider != null)
-                targetPos = _spaceshipCollider.ClosestPoint(transform.position);
-
             Vector3 origin = transform.position + Vector3.up * 1f;
             Vector3 dirToTarget = (targetPos - transform.position).normalized;
             dirToTarget.y = 0;
@@ -362,6 +371,16 @@ public class TankController : MonoBehaviour, IDamagable, ITargetable
         isJumping = false;
     }
 
+    private void FaceTarget(Vector3 targetPos)
+    {
+        Vector3 direction = (targetPos - transform.position).normalized;
+        direction.y = 0; 
+
+        if (direction != Vector3.zero)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Time.deltaTime * 5f);
+        }
+    }
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

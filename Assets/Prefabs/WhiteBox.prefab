@@ -20,7 +20,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3837954785256211237
 Transform:
   m_ObjectHideFlags: 0
@@ -496,7 +496,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1980622155588594768
 Transform:
   m_ObjectHideFlags: 0
@@ -791,7 +791,7 @@ MeshRenderer:
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
   m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
+  m_SelectedEditorRenderState: 2
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
@@ -964,7 +964,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5568808360580223598
 Transform:
   m_ObjectHideFlags: 0
@@ -974,7 +974,7 @@ Transform:
   m_GameObject: {fileID: 875569830405956571}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.43318725, z: 0, w: 0.90130395}
-  m_LocalPosition: {x: -23.6, y: 3.67, z: -56.7}
+  m_LocalPosition: {x: -21.95, y: 3.67, z: -55.9}
   m_LocalScale: {x: 9.592122, y: 7.6114, z: 19.446001}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1320,7 +1320,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1461287212635816754
 Transform:
   m_ObjectHideFlags: 0
@@ -1615,7 +1615,7 @@ MeshRenderer:
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
   m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
+  m_SelectedEditorRenderState: 2
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
@@ -2004,7 +2004,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6697141179844774824
 Transform:
   m_ObjectHideFlags: 0
@@ -2014,7 +2014,7 @@ Transform:
   m_GameObject: {fileID: 2451560478012049238}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.118144035, z: 0, w: 0.9929965}
-  m_LocalPosition: {x: 58.82, y: 3.67, z: -32.39}
+  m_LocalPosition: {x: 57.25, y: 3.67, z: -30.400002}
   m_LocalScale: {x: 8.84, y: 7.6114, z: 9.83}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2360,7 +2360,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5919330748752722539
 Transform:
   m_ObjectHideFlags: 0
@@ -2828,7 +2828,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8974793111174998326
 Transform:
   m_ObjectHideFlags: 0
@@ -2838,7 +2838,7 @@ Transform:
   m_GameObject: {fileID: 3184435509878019330}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.7240426, z: -0, w: 0.6897553}
-  m_LocalPosition: {x: 22.1, y: 4.38, z: -25.59}
+  m_LocalPosition: {x: 22.1, y: 4.38, z: -1.4}
   m_LocalScale: {x: 15.65484, y: 8.990554, z: 20.137726}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3866,7 +3866,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3160395842765371935
 Transform:
   m_ObjectHideFlags: 0
@@ -4401,7 +4401,7 @@ MeshRenderer:
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
   m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
+  m_SelectedEditorRenderState: 2
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
@@ -4462,7 +4462,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8319562805584701534
 Transform:
   m_ObjectHideFlags: 0
@@ -4818,7 +4818,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6352191185866121813
 Transform:
   m_ObjectHideFlags: 0
@@ -5174,7 +5174,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2773884788611351715
 Transform:
   m_ObjectHideFlags: 0
@@ -5184,7 +5184,7 @@ Transform:
   m_GameObject: {fileID: 6717738420408909013}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.118144035, z: 0, w: 0.9929965}
-  m_LocalPosition: {x: -12.5, y: 3.67, z: -35.9}
+  m_LocalPosition: {x: -7.08, y: 3.67, z: -32.47}
   m_LocalScale: {x: 11.23, y: 7.6114, z: 12.52}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5651,7 +5651,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7317998335538800741
 Transform:
   m_ObjectHideFlags: 0
@@ -6247,7 +6247,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6068423485538750134
 Transform:
   m_ObjectHideFlags: 0
@@ -6542,7 +6542,7 @@ MeshRenderer:
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
   m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
+  m_SelectedEditorRenderState: 2
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
@@ -6603,7 +6603,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7986472600663578037
 Transform:
   m_ObjectHideFlags: 0
@@ -6898,7 +6898,7 @@ MeshRenderer:
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
   m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
+  m_SelectedEditorRenderState: 2
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89

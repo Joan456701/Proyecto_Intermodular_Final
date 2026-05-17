@@ -6,7 +6,7 @@ public class SaveZone : MonoBehaviour
     [SerializeField] private bool _showDebugInfo = true;
     [SerializeField] private Collider _zoneCollider;
     [SerializeField] private Transform _visualTransform;
-    [SerializeField] private float _sizeIncreasePerLevel = 0.5f;
+    [SerializeField] private float _sizeIncreasePerLevel = 0.25f;
     [SerializeField] private GasoilStation _linkedStation;
 
     [Header("Ajustes del shader")]
@@ -14,6 +14,7 @@ public class SaveZone : MonoBehaviour
     [SerializeField] private Transform _otherModelTransform;
     [SerializeField] private float _dissolveSpeed = 0.1f;
     [SerializeField] private float _dissolveThreshold = 0.7f;
+    [SerializeField] private float[] _laserHeightsPerLevel = new float[] { 1.0f, 2.1f, 3.2f, 4.3f };
 
     private Material _domeMaterial;
     private float _dissolveAmount = 0f;
@@ -85,7 +86,16 @@ public class SaveZone : MonoBehaviour
             {
                 Vector3 currentScale = _otherModelTransform.localScale;
 
-                currentScale.y = 1f - _dissolveAmount;
+                float maxLaserHeight = 1f;
+
+                int arrayIndex = _currentBaseLevel - 1;
+
+                if (_laserHeightsPerLevel != null && arrayIndex >= 0 && arrayIndex < _laserHeightsPerLevel.Length)
+                {
+                    maxLaserHeight = _laserHeightsPerLevel[arrayIndex];
+                }
+
+                currentScale.y = maxLaserHeight * (1f - _dissolveAmount);
 
                 _otherModelTransform.localScale = currentScale;
             }

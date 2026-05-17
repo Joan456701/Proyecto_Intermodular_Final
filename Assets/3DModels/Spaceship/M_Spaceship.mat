@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_Spaceship
-  m_Shader: {fileID: -6465566751694194690, guid: 13bf0f5a2a4f49b4db4523786bcc30ae, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: a603f3e68b2bd4a4695449a996569f87, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -77,8 +77,20 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_10f8cdc64ee54069b34436a2b0a7fb5d_Texture_1_Texture2D:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_a2f59a8ac9bd4ac8ac1164377b888597_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: f170825d318ad624ea997950b2b72482, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture:
+        m_Texture: {fileID: 2800000, guid: b12a1671b5277174eba818ceb50c33a0, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture2D:

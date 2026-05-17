@@ -193,6 +193,11 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
         _timeWithoutSeeingPlayer = 0f;
         _timeSinceLastAttack += Time.deltaTime;
 
+        if (_currentTarget != null)
+        {
+            FaceTarget(_currentTarget.position);
+        }
+
         if (_timeSinceLastAttack >= _cooldown)
         {
             IDamagable objDamagable = _currentTarget.GetComponent<IDamagable>();
@@ -222,13 +227,17 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
     {
         _timeSinceLastAttack += Time.deltaTime;
 
+        Vector3 targetPos = _currentTarget.position;
+
+        if (_currentTarget == _spaceshipTarget && _spaceshipCollider != null)
+        {
+            targetPos = _spaceshipCollider.ClosestPoint(transform.position);
+        }
+
+        FaceTarget(targetPos);
+
         if (_timeSinceLastAttack >= _cooldown)
         {
-            Vector3 targetPos = _currentTarget.position;
-
-            if (_currentTarget == _spaceshipTarget && _spaceshipCollider != null)
-                targetPos = _spaceshipCollider.ClosestPoint(transform.position);
-
             Vector3 origin = transform.position + Vector3.up * 1f;
             Vector3 dirToTarget = (targetPos - transform.position).normalized;
             dirToTarget.y = 0;
@@ -241,6 +250,7 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
                 {
                     obstacle.DamageRecived(_attackDamage);
                     _timeSinceLastAttack = 0;
+                    Debug.Log("¡El enemigo atacó un obstáculo o la base!");
                 }
             }
         }
@@ -348,6 +358,17 @@ public class EnemyController : MonoBehaviour, IDamagable, ITargetable
             }
         }
         return false;
+    }
+
+    private void FaceTarget(Vector3 targetPos)
+    {
+        Vector3 direction = (targetPos - transform.position).normalized;
+        direction.y = 0;
+
+        if (direction != Vector3.zero)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), Time.deltaTime * 5f);
+        }
     }
     private void OnDrawGizmosSelected()
     {
